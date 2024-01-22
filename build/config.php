@@ -10,7 +10,7 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$result = $conn->query("SELECT * FROM examples");
+$result = $conn->query("SELECT * FROM code_examples");
 
 $data = array();
 while ($row = $result->fetch_assoc()) {
