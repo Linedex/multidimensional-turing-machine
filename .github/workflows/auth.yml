@@ -3,7 +3,7 @@ name: Deploy to auth.linedex.net
 on:
   push:
     branches:
-      - dev  # Change this to your main branch
+      - auth
 
 jobs:
   deploy:
