@@ -62,7 +62,7 @@
         // Function to fetch code examples from the server
         async function fetchCodeExamples() {
             try {
-                const response = await fetch('config.php');
+                const response = await fetch('path/to/your/php/script.php');
                 const data = await response.json();
 
                 renderCodeExamples(data);
@@ -90,6 +90,11 @@
                 const userElement = document.createElement('div');
                 userElement.classList.add('codeUser');
                 userElement.textContent = `Posted by: ${example.user}`;
+
+                // Add a click event listener to navigate to the code page
+                codeExampleDiv.addEventListener('click', () => {
+                    window.location.href = `code_page.html?code=${encodeURIComponent(example.code)}`;
+                });
 
                 codeExampleDiv.appendChild(titleElement);
                 codeExampleDiv.appendChild(descriptionElement);
