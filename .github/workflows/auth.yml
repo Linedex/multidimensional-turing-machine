@@ -1,0 +1,23 @@
+name: Deploy to auth.linedex.net
+
+on:
+  push:
+    branches:
+      - dev  # Change this to your main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Debug Repository Directory
+      run: |
+        echo "Repository Directory: $GITHUB_WORKSPACE"
+        ls -al $GITHUB_WORKSPACE
+    - name: Deploy to linedex.net
+      run: |
+        sudo apt-get install -y lftp
+        lftp -e "set ssl:verify-certificate no; open -u ${{ secrets.FTP_USERNAME }},${{ secrets.FTP_PASSWORD }} -p 21 ftp.linedex.net; mirror -R build/ ../../../auth.linedex.net/; quit"
