@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="editor-container">
+    <label for="inputTextArea">TuringMachine++</label>
+    <textarea id="inputTextArea" rows="8" placeholder="Enter text"># Comment
+#color 1 #ff00ff
+#timeout 11000
+# Langton's Ant
+U _ R 1 0 +
+R _ D 1 1 -
+D _ L 1 0 -
+L _ U 1 1 +
+U 1 L _ 0 -
+R 1 U _ 1 +
+D 1 R _ 0 +
+L 1 D _ 1 -</textarea>
+    <button onclick="parse()">Load and Run</button>
+</div>
+<canvas id="canvas" width="1000" height="1000"></canvas>
+</body>
+</html>

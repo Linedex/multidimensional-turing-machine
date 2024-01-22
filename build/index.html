@@ -1,27 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <script src="script.js"></script>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Examples</title>
+    <style>
+        /* Styles as before */
+    </style>
 </head>
 <body>
-  <div id="editor-container">
-    <label for="inputTextArea">TuringMachine++</label>
-    <textarea id="inputTextArea" rows="8" placeholder="Enter text"># Comment
-#color 1 #ff00ff
-#timeout 11000
-# Langton's Ant
-U _ R 1 0 +
-R _ D 1 1 -
-D _ L 1 0 -
-L _ U 1 1 +
-U 1 L _ 0 -
-R 1 U _ 1 +
-D 1 R _ 0 +
-L 1 D _ 1 -</textarea>
-    <button onclick="parse()">Load and Run</button>
-</div>
-<canvas id="canvas" width="1000" height="1000"></canvas>
+    <div id="codeContainer">
+        <!-- JavaScript will populate this container -->
+    </div>
+
+    <script>
+        // Function to fetch code examples from the server
+        async function fetchCodeExamples() {
+            try {
+                const response = await fetch('config.php');
+                const data = await response.json();
+
+                renderCodeExamples(data);
+            } catch (error) {
+                console.error('Error fetching code examples:', error);
+            }
+        }
+
+        // Function to render code examples
+        function renderCodeExamples(examples) {
+            const codeContainer = document.getElementById('codeContainer');
+
+            examples.forEach(example => {
+                const codeExampleDiv = document.createElement('div');
+                codeExampleDiv.classList.add('codeExample');
+
+                const titleElement = document.createElement('div');
+                titleElement.classList.add('codeTitle');
+                titleElement.textContent = example.title;
+
+                const descriptionElement = document.createElement('div');
+                descriptionElement.classList.add('codeDescription');
+                descriptionElement.textContent = example.description;
+
+                const userElement = document.createElement('div');
+                userElement.classList.add('codeUser');
+                userElement.textContent = `Posted by: ${example.user}`;
+
+                codeExampleDiv.appendChild(titleElement);
+                codeExampleDiv.appendChild(descriptionElement);
+                codeExampleDiv.appendChild(userElement);
+                codeContainer.appendChild(codeExampleDiv);
+            });
+        }
+
+        // Fetch and render code examples on page load
+        window.onload = fetchCodeExamples;
+    </script>
 </body>
 </html>
