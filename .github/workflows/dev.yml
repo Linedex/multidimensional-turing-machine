@@ -1,4 +1,4 @@
-name: Deploy to linedex.net
+name: Deploy to dev.linedex.net
 
 on:
   push:
