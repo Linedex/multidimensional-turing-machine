@@ -1,16 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="script.js"></script>
   <link rel="stylesheet" href="style.css">
+  <!-- Include CodeMirror styles -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/theme/monokai.min.css">
+  <!-- Include CodeMirror scripts -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
+  <script src="https://codemirror.net/mode/javascript/javascript.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.11.0/jshint.js"></script>
+  
 </head>
 <body>
+
   <div id="editor-container">
-    <label for="inputTextArea">TuringMachine++</label>
-    <textarea id="inputTextArea" rows="8" placeholder="Enter text"># Comment
-#color 1 #ff00ff
+    <label for="editor">TuringMachine++</label>
+    <textarea id="editor" rows="8" placeholder="Enter text">#color 1 #ff00ff
 #timeout 11000
+
 # Langton's Ant
 U _ R 1 0 +
 R _ D 1 1 -
@@ -22,6 +32,11 @@ D 1 R _ 0 +
 L 1 D _ 1 -</textarea>
     <button onclick="parse()">Load and Run</button>
 </div>
+
 <canvas id="canvas" width="1000" height="1000"></canvas>
+
+<!-- Initialize CodeMirror -->
+<!-- <script src="editor.js"></script> -->
+
 </body>
 </html>

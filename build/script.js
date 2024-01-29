@@ -2,7 +2,7 @@
 // Gloabal TuringMachine++ varibles
 deltas = {}
 tape = {}
-head = [0,0]
+head = []
 state = 'UNKNOWN'
 
 // The tape dimension indicies to render as x,y,z
@@ -10,10 +10,10 @@ xIndex = 0;
 yIndex = 1;
 zIndex = 2;
 
-
 colors = {} // The render colors of each symbol
 showGrid = true;
 timeout = 11000;
+
 
 
 
@@ -165,9 +165,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 
-
-
-function onload() {}
+// {?:d;U,R,D,L} {?:r;_,1:9} {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} {?:r;1:9,_} {?:d;0,1,0,1} {?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
 
 /* 
 ===SYNTAX====
@@ -190,17 +188,17 @@ Does not impact how the TM++ code functions.
   The IDE will pause whenever the delta function is used. 
 */
 
-
-
 /**
  * Loads and parses the textarea for the TuringMachine++.
  */
 function parse() {
-  const text = document.getElementById('inputTextArea').value;
+
+  // const text = editor.getValue()
+
+  const text = document.getElementById('editor').value;
 
   deltas = {}
   tape = {}
-  head = [0,0]
   state = 'U' 
 
   // Selects all comments (alternate method of removal)
@@ -214,6 +212,9 @@ function parse() {
     parseGenerators(line);
   }
 
+  nDim = Object.keys(deltas)[0].split(',').length
+
+  head = Array.from({length: nDim}, x=>0);
 
   run(timeout);
 }
@@ -224,19 +225,17 @@ function parse() {
  * Comments at the top of the file used to load IDE settings.
  * Does not impact how the TM++ code functions.
  * 
+ * [WIP]
  * #viewport <width-dim-num> [height-dim-index] [layer-dim-index] [[<fixed-dim-index>=<value; default=0>] ...]
  *    Used to view 1D, 2D, 3D views
- * 
- * #dispmode (text|pixels)
- *    Change how the viewport renders
- *    `pixels` renders each symbol as the color specified by `#color`
  * 
  * #grid (true|false)
  *    Show or hide the gridlines
  * 
- * #color <symbol> (<rgb>|<rgba>)
+ * #color <symbol> <html-color>
  *    Set the color of a symbol
  * 
+ * [WIP]
  * #break [state=<state>] [symbol=<symbol>]
  *    Creates a breakpoint whenever the provided values matches the current values during runtime.
  * 
@@ -285,58 +284,62 @@ function parseConfigs(text) {
  * {[<start=0>] : [<stop=0>] [: <step=1>]}
  *    "Generator Builder" Repeats for all ints from `start` inclusive to `stop` exclusive.
  *    Examples:
- *      {:5}    = {0, 1, 2, 3, 4}
- *      {:5:}   = {0, 1, 2, 3, 4}
- *      {1:5}   = {1, 2, 3, 4}
- *      {:5:2}  = {0, 2, 4}
- *      {5::-1} = {5, 4, 3, 2, 1}
- *      {:5:-1} = {}
+ *      {:5}    => {0, 1, 2, 3, 4}
+ *      {:5:}   => {0, 1, 2, 3, 4}
+ *      {1:5}   => {1, 2, 3, 4}
+ *      {:5:2}  => {0, 2, 4}
+ *      {5::-1} => {5, 4, 3, 2, 1}
+ *      {:5:-1} => {}
  * 
  * {(<value> | [<start=0>] : [<stop=0>] [: <step=1>]) [, ...]}
  *    A mixture of the two methods of generators.
  *    A "Generator List" can contain a "Generator Builder" or a <value>.
  *    Examples:
- *      {:5}    = {0, 1, 2, 3, 4}
- *      {0,:5}  = {0, 0, 1, 2, 3, 4}
+ *      {:5}    => {0, 1, 2, 3, 4}
+ *      {0, :5} => {0, 0, 1, 2, 3, 4}
  * 
  * {[<arg-name>:<arg-value>;] ... <generator-entry>}
  *    Adds a argument to the generator that influences behavior.
  * 
- * {#:<track>; <generator-entry>}
- * {track:<track>; <generator-entry>}
+ * {?:<track>; <generator-entry>}
  *    Designate the track of the generator.
  *    Generators with the same track number are run in parallel
  *    Generators with different track numbers are run for each value of the others
  *    Examples:
  *      a {1,2} b {3,4} c
  *        a 1 b 3 c
+ *        a 1 b 4 c
+ *        a 2 b 3 c
  *        a 2 b 4 c
- *      a {#:t0;1,2} b {#:t1;3,4} c
+ *      a {?:track0; 1,2} b {?:track1; 3,4} c
  *        a 1 b 3 c
  *        a 1 b 4 c
  *        a 2 b 3 c
  *        a 2 b 4 c
+ *      a {?:track0; 1,2} b {?:track0; 3,4} c
+ *        a 1 b 3 c
+ *        a 2 b 4 c
  * 
- * {?:<symbols>; <generator-entry>}
- * {symbols:<symbols>; <generator-entry>}
+ * {@:<symbols>; <generator-entry>}
  *    Designate the symbols of the generator.
  *    Symbols are sperated by a comma.
+ *    The symbol to use is calculated by the generator value mod the number of symbols
+ *    Examples:
+ *      {@:a,b,c; 0,2,1}  => {a, c, b}
+ *      {@:a,b,c; 1,4,-2} => {b, b, b}
  * 
  * [track=<track>;] [symbols=<symbols>;] (<value> | [<start=0>] : [<stop=0>] [: <step=1>]) [, ...]
  *    The full syntax of a generator.
  *    
- * 
- * TODO 
- * recursion <3 for embeded calls
- * pass directly to parse machine if no {}
- * If a generator has the same tag, continue running
- * 
  * @param {string} line A single line containing a generator 
  */
 function parseGenerators(line) {
   
   // Extract first non embedded brackets
-  generator = line.match(/\{[^\{\}]*?\}/)
+  // generator = line.match(/\{[^\{\}]*?\}/)
+
+  // The first non embedded generator
+  var generator = line.match(/{(?:\?:(?<track>[^{};]*);)?(?:@:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}/);
 
   // No generator is found, skip
   if (generator == null) {
@@ -344,65 +347,120 @@ function parseGenerators(line) {
     return
   }
 
-  // /\{(?:(?<name>[^\{\};]*);)?(?:(?<symbols>[^\{\};]*);)?(?<gen>[^\{\}]+)\}/g
+  // The track of the first generator
+  const track = generator.groups.track;
 
-  /*
-  (?<gen>\{(?<name>[^\{\}]*);[^\{\}]*?\})
-  
-  (
-    (?<pass>[^\{\}]*)
-    (?<gen1>\{\k<name>;[^\{\}]*?\})*
-  )*
-  */
+  // regular expression to extarct all generators on the same track
+  const reg = RegExp('{\\?:' + track + ';(?:@:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}')
 
-  // left and right of first match
-  lr = line.split(generator[0])
-  l = lr[0]
-  r = lr[1]
+  // The line split across all generators on the same track
+  var segs = [line]
 
-  // Args are seperated by a semicolon
-  args = generator[0].slice(1,-1).split(";");
+  var genEntries = []
+  var genSymbols = []
 
-  // Final arg is the 
-  generatorEntry = args[args.length-1].split(",")
+  // Extract all generators with the same track
+  do {
+    parseGenerators
+    // Extract last segment
+    const seg = segs.pop()
 
-  // Iterate over all values in the generator
-  for (value of generatorEntry) {
-    
-    // Value is a range
-    if (value.includes(":")) {
+    split = seg.split(generator[0])
 
-      // Divide into subvalues for start, end, step
-      // All subvalues are integers
-      subvalues = value.split(":")
+    // Split the segment along the generator
+    segs.push(...[split.shift(),split.join(generator[0])])
 
-      start = parseInt(subvalues[0])
-      end = parseInt(subvalues[1])
+    genEntries.push(generator.groups.gen.split(","))
 
-      // Check of optional third element is included
-      if (subvalues.length == 3) {
-        step = parseInt(subvalues[2])
-      }
-
-      // Reverse if iteration is negative
-      // TODO optimize
-      if (step > 0) {
-        for (let i=start; i<end; i+=step) {
-          parseMachine(l + i + r)
-        }
-      } else {
-        for (let i=start; i>end; i+=step) {
-          parseMachine(l + i + r)
-        }
-      }
-
+    if (generator.groups.symbols != undefined) {
+      genSymbols.push(generator.groups.symbols.split(","))
     } else {
-      // Value is just a normal value
-      parseMachine(l + value + r)
+      genSymbols.push(null)
+    }
+
+    // Find next generator
+    generator = segs[segs.length-1].match(reg);
+
+  } while (generator != null)
+
+
+  // Expand all generator builders into generator lists
+  var newGenEntries = []
+
+  for (let i = 0; i < genEntries.length; i++) {
+    newGenEntries[i] = []
+    for (value of genEntries[i]) {
+      
+      // Value is a range
+      if (value.includes(":")) {
+
+        // Divide into subvalues for start, end, step
+        // All subvalues are integers
+        subvalues = value.split(":")
+
+        start = parseInt(subvalues[0])
+        end = parseInt(subvalues[1])
+
+        // Check of optional third element is included
+        if (subvalues.length == 3) {
+          step = parseInt(subvalues[2])
+        } else {
+          step = 1;
+        }
+
+        // Reverse if iteration is negative
+        // TODO optimize
+        if (step > 0) {
+          for (let k=start; k<end; k+=step) {
+            newGenEntries[i].push(k)
+          }
+        } else {
+          for (let k=start; k>end; k+=step) {
+            newGenEntries[i].push(k)
+          }
+        }
+
+      } else {
+
+        if (value == '_') {
+          console.log('');
+        } 
+
+        // Value is just a normal value
+        newGenEntries[i].push(value)
+      }
+
     }
   }
+
+  genEntries = newGenEntries
+
+  // Construct the new line with the values inserted
+  for (let i=0; i<genEntries[0].length; i++) {
+    newLine = segs[0]
+    for (let j=0; j<genEntries.length; j++) {
+      
+      // Replace generator with its symbol or value
+      if (genSymbols[j] != null) {
+        n = genSymbols[j].length
+        index = ((genEntries[j][i] % n) + n) % n
+        newLine += genSymbols[j][index]
+      } else {
+        newLine += genEntries[j][i]
+      }
+
+      newLine += segs[j+1]
+    }
+
+    // console.log(newLine)
+
+    parseGenerators(newLine);
+
+    // parseMachine(newLine)
+
+  }
+
 }
-var start, end, step
 
 
 /**
@@ -417,7 +475,7 @@ var start, end, step
  * @param {string} text 
  */
 function parseMachine(line) {
-  console.log(line)
+  // console.log(line)
   const args = line.split(/\s+/);
   deltas[[args[0], args[1]]] = args.slice(2);
 }
