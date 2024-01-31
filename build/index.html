@@ -4,24 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <script src="script.js"></script>
+  <script src="display.js"></script>
   <link rel="stylesheet" href="style.css">
   <!-- Include CodeMirror styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/theme/monokai.min.css">
   <!-- Include CodeMirror scripts -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
   <script src="https://codemirror.net/mode/javascript/javascript.js"></script>
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jshint/2.11.0/jshint.js"></script>
-  
+  <script src="https://codemirror.net/5/addon/mode/simple.js"></script>
 </head>
 <body>
+<div id="body-container">
 
-  <div id="editor-container">
-    <label for="editor">TuringMachine++</label>
-    <textarea id="editor" rows="8" placeholder="Enter text">#color 1 #ff00ff
+<!-- Code Editor -->
+<div class="container" id="editor-container">
+<label for="editor">TuringMachine++</label>
+<textarea id="editor" rows="8" placeholder="Enter text">
+#color 1 #ff00ff
 #timeout 11000
+#grid true
 
-# Langton's Ant
+# Langtons Ant
 U _ R 1 0 +
 R _ D 1 1 -
 D _ L 1 0 -
@@ -30,13 +34,20 @@ U 1 L _ 0 -
 R 1 U _ 1 +
 D 1 R _ 0 +
 L 1 D _ 1 -</textarea>
-    <button onclick="parse()">Load and Run</button>
+<button onclick="parse()">Load and Run</button>
 </div>
 
+<!-- Resize Bar -->
+<div class="resize" id="resize"></div>
+
+<!-- Tape Display  -->
+<div class="container" id="canvas-container">
 <canvas id="canvas" width="1000" height="1000"></canvas>
+</div>
 
 <!-- Initialize CodeMirror -->
-<!-- <script src="editor.js"></script> -->
+<script src="editor.js"></script>
 
+</div>
 </body>
 </html>

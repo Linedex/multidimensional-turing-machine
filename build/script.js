@@ -1,3 +1,9 @@
+/*
+ * Code for the TuringMachine++ itself
+ */
+
+// Extended Langton's Ant
+// {?:d;U,R,D,L} {?:r;_,1:9} {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} {?:r;1:9,_} {?:d;0,1,0,1} {?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
 
 // Gloabal TuringMachine++ varibles
 deltas = {}
@@ -12,160 +18,7 @@ zIndex = 2;
 
 colors = {} // The render colors of each symbol
 showGrid = true;
-timeout = 11000;
-
-
-
-
-
-
-// Load a 2D slice of the TM++ onto the canvas
-document.addEventListener("DOMContentLoaded", function() {
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
-  // Initial grid properties
-  let cellSize = 50;
-  let panX = 0;
-  let panY = 0;
-  let scale = 1;
-
-  function drawGrid() {
-
-    // Reset canvas
-    ctx.setTransform();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = "#ccc";
-    ctx.lineWidth = Math.min(scale, 1/scale); // Prevent lineweight from scaling unless zoomed far out 
-    ctx.setTransform(scale, 0, 0, scale, panX, panY); // Scale to current view
-    
-    // Extra cells to display outside of viewport
-    const offset = 1;
-
-    // Calculate the boundaries of the tape's viewport  
-    const xMin = parseInt((0 - panX) / (cellSize * scale)) - offset;
-    const xMax = parseInt((canvas.width - panX) / (cellSize * scale)) + offset;
-    const yMin = parseInt((0 - panY) / (cellSize * scale)) - offset;
-    const yMax = parseInt((canvas.height - panY) / (cellSize * scale)) + offset;
-    
-    // Draw gridlines
-    if (showGrid) {
-      // Draw vertical gridlines
-      for (let x = xMin; x <= xMax; x++) {
-        const xPos = x * cellSize;
-        ctx.beginPath();
-        ctx.moveTo(xPos, yMin * cellSize);
-        ctx.lineTo(xPos, yMax * cellSize);
-        ctx.stroke();
-      }
-      // Draw horizontal gridlines
-      for (let y = yMin; y <= yMax; y++) {
-        const yPos = y * cellSize;
-        ctx.beginPath();
-        ctx.moveTo(xMin * cellSize, yPos);
-        ctx.lineTo(xMax * cellSize, yPos);
-        ctx.stroke();
-      }
-    }
-
-    // Draw all cells in the viewport
-    for (let x = xMin; x <= xMax; x++) {
-      for (let y = yMin; y <= yMax; y++) {
-
-        // Current cell
-        var head = [0,0]
-        head[xIndex] = x;
-        head[yIndex] = y;
-
-        // Draw cell's symbol
-        if (head in tape) {
-
-          // Position of cell
-          const xPos = x * cellSize;
-          const yPos = y * cellSize;
-          const symbol = tape[head]
-          
-          // Fill in symbol color
-          if (symbol in colors) {
-            ctx.fillStyle = colors[symbol];
-            ctx.fillRect(xPos, yPos, cellSize, cellSize);
-          } else {
-            ctx.textAlign = "center";
-            ctx.fillStyle = '#abb2bf';
-            ctx.fillText(symbol, xPos + 0.5 * cellSize, yPos + 0.5 * cellSize);
-          }
-        } 
-      }
-    }
-
-    // Draw head
-    const xPos = head[xIndex] * cellSize;
-    const yPos = head[yIndex] * cellSize;
-    ctx.lineWidth = 2 * Math.min(scale, 1/scale); // Prevent lineweight from scaling unless zoomed far out 
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(xPos, yPos, cellSize, cellSize);
-  }
-
-  function handleZoom(event) {
-    const zoomFactor = 0.1;
-    const delta = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
-    scale *= delta;
-    drawGrid();
-  }
-
-  function handlePan(event) {
-    if (event.buttons === 1) {
-      panX += event.movementX;
-      panY += event.movementY;
-      drawGrid();
-    }
-  }
-
-  function handleMiddeClick(event) {
-    if (event.button === 1) {
-      panX = panY = 0;
-      scale = 1;
-      drawGrid();
-    }
-  }
-
-  canvas.addEventListener('auxclick',handleMiddeClick);
-  canvas.addEventListener("wheel", handleZoom);
-  canvas.addEventListener("mousemove", handlePan);
-
-  parse(); // Initial parse
-
-  drawGrid(); // Initial draw
-});
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// {?:d;U,R,D,L} {?:r;_,1:9} {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} {?:r;1:9,_} {?:d;0,1,0,1} {?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
+timeout = 100; // cycles until forced termination
 
 /* 
 ===SYNTAX====
@@ -183,7 +36,7 @@ entry ...	            Prior entry repeats.
 Placed at the end of a delta to signify IDE intervention.
 Does not impact how the TM++ code functions.
 
-@ break
+@break
   Creates a breakpoint for the delta function.
   The IDE will pause whenever the delta function is used. 
 */
@@ -193,9 +46,11 @@ Does not impact how the TM++ code functions.
  */
 function parse() {
 
-  // const text = editor.getValue()
+  // Get code from editor
+  const text = editor.getValue()
 
-  const text = document.getElementById('editor').value;
+  // Get code from textarea
+  // const text = document.getElementById('editor').value;
 
   deltas = {}
   tape = {}
@@ -214,6 +69,7 @@ function parse() {
 
   nDim = Object.keys(deltas)[0].split(',').length
 
+  // Set the head position to all zeros
   head = Array.from({length: nDim}, x=>0);
 
   run(timeout);
@@ -422,10 +278,6 @@ function parseGenerators(line) {
 
       } else {
 
-        if (value == '_') {
-          console.log('');
-        } 
-
         // Value is just a normal value
         newGenEntries[i].push(value)
       }
@@ -452,14 +304,10 @@ function parseGenerators(line) {
       newLine += segs[j+1]
     }
 
-    // console.log(newLine)
-
+    // Parse the resulting line incase it also contains a generator
     parseGenerators(newLine);
 
-    // parseMachine(newLine)
-
   }
-
 }
 
 
