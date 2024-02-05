@@ -78,10 +78,6 @@ function parse() {
     parseGenerators(line);
   }
 
-
-
-  // const nDim = Object.keys(deltas)[0].split(',').length;
-
   // Set the head position to all zeros
   head = Array.from({length: nDim}, x=>0);
 
@@ -110,43 +106,46 @@ function parse() {
  * @param {string} text The full input text
  */
 function parseConfig(line) {
-  
-  // All comments before first line
-  // const lines = text.match(/^(\s*#.*\n)+/g)[0].split("\n");
 
-  args = line.trim().split(/\s+/);
+  // Strings before and after first section of spaces
+  var keyword, args
 
-  switch (args[0]) {
+  [keyword, args] = line.trim().split(/(?<=^\S*)\s+/);
+
+  switch (keyword) {
 
     case "start":
-      state = args[1];
+      state = args;
       break;
 
     case "color":
-      colors[args[1]] = args[2];
+      args = args.split(/\s+/);
+      colors[args[0]] = args[1];
       break;
     
     case "grid":
-      showGrid = args[1] == "true";
+      showGrid = args == "true";
       break;
 
     case "timeout":
-      timeout = parseInt(args[1]);
+      timeout = parseInt(args);
       break;
 
     case "break":
-      breakpoints.push(args[1]+","+args[2])
+      args = args.split(/\s+/);
+      breakpoints.push(args[0]+","+args[1])
 
     case "view":
-      for (let i = 1; i < args.length; i++) {
+      args = args.split(/\s+/);
+      for (let i = 0; i < args.length; i++) {
         switch (args[i]) {
           // Save dimension index used for iteration when rendering the view
-          case "x": case "X": xIndex = i-1; break;
-          case "y": case "Y": yIndex = i-1; break;
-          case "z": case "Z": zIndex = i-1; break;
+          case "x": case "X": xIndex = i; break;
+          case "y": case "Y": yIndex = i; break;
+          case "z": case "Z": zIndex = i; break;
           // Save dimension coord used for the view
           default:
-            viewCoords[i-1] = parseInt(args[i]);
+            viewCoords[i] = parseInt(args[i]);
         }
       }
       break;
