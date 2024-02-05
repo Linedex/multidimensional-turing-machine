@@ -2,6 +2,16 @@
  * Code for the TuringMachine++ code editor 
  */
 
+/*  TODO
+    buffers?
+    folding?
+    linting
+    marker (adds #@break)
+    indented wrapped line
+    Search/Replace
+    Theme Demo
+*/ 
+
 // Code syntax styling
 // The regex matches the token, the token property contains the type
 // https://codemirror.net/5/demo/simplemode.html
@@ -10,49 +20,40 @@ CodeMirror.defineSimpleMode("tm++", {
     // The start state contains the rules that are initially used
     start: [
 
-      // String
-      {regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string"},
-      
-      // You can match multiple tokens at once. Note that the captured
-      // groups must span the whole string in this case
-      // {regex: /(function)(\s+)([a-z$][\w$]*)/, token: ["keyword", null, "variable-2"]},
-      
-      // Special keywords
-      {regex: /(?:#color|#timeout|#grid)\b/, token: "keyword"},
-      {regex: /true|false|null|undefined/, token: "atom"},
-      
-      // Numbers
-      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      
-      // Comments
+      // Config comment
+      {regex: /(#--)(\w+)/, token: ["comment", "keyword"]},
+
       {regex: /#.*/, token: "comment"},
-      // {regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3"},
-      // A next property will cause the mode to move to a different state
+
+      // Full Line
+      {regex: /^(\s*[^\d\s+-]\S*\s+)(\S+\s+)(\S+\s+)(\S+)/, 
+       token: ["variable-1", "string", "variable-1", "string"]},
+
+      {regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string"},
+      // {regex: /(?:start|color|timeout|grid|view)\b/, token: "keyword"},
+      {regex: /true|false|null|undefined/, token: "atom"},
+      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},      
       
       // Generators
       // {regex: /[:;,]+/, token: "operator"},
+      {regex: /[+-]+/, token: "variable-2"},
       
-      {regex: /{/, token: "string", next: "generator"},
+      // {regex: /{/, token: "string", next: "generator"},
 
       // Indent and dedent properties guide autoindentation
       {regex: /[\{\[\(]/, indent: true},
       {regex: /[\}\]\)]/, dedent: true},
 
-      // Everything else is a variable
-      {regex: /[a-z$][\w$]*/, token: "variable"},
+      {regex: /[a-zA-Z]\S*/, token: "variable"},
 
-      // TODO add this for top line comments or generators
-      // You can embed other modes with the mode property. This rule
-      // causes all code between << and >> to be highlighted with the XML mode.
-      // {regex: /<</, token: "meta", mode: {spec: "xml", end: />>/}}
     ],
 
     // The multi-line generator state.
-    generator: [
-        {regex: /[:;,]/, token: "variable-3"},
-        {regex: /}/, token: "string", next: "start"},
-        {regex: /[^:;,}]/, token: "string"}
-    ],
+    // generator: [
+    //     {regex: /[:;,]/, token: "variable-3"},
+    //     {regex: /}/, token: "string", next: "start"},
+    //     {regex: /[^:;,}]/, token: "string"}
+    // ],
 
     // The multi-line comment state.
     // comment: [
@@ -73,6 +74,33 @@ CodeMirror.defineSimpleMode("tm++", {
 // Replace the textarea with CodeMirror
 var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
     mode: 'tm++',
-    lineNumbers: true,
     theme: 'monokai',
+    lineNumbers: true,
+    showMatchesOnScrollbar: true,
+    autoCloseBrackets: true, // addon/edit/closebrackets.js
+    styleActiveLine: true, // addon/selection/active-line.js
+    matchBrackets: true, // edit/matchbrackets.js
+    // extraKeys: {"Alt-F": "findPersistent"},
+    scrollbarStyle: "simple",
+    gutters: ["CodeMirror-linenumbers", "breakpoints"]
 });
+
+// Replace tab with spaces
+editor.setOption("extraKeys", {
+  Tab: function(cm) {
+    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+    cm.replaceSelection(spaces);
+  }
+});
+
+editor.on("gutterClick", function(cm, n) {
+  var info = cm.lineInfo(n);
+  cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
+});
+
+function makeMarker() {
+  var marker = document.createElement("div");
+  marker.style.color = "#822";
+  marker.innerHTML = "●";
+  return marker;
+}

@@ -6,27 +6,27 @@
 // Load a 2D slice of the TM++ onto the canvas
 document.addEventListener("DOMContentLoaded", function() {
 
-    var resize = document.querySelector("#resize");
-    var left = document.querySelector("#editor-container")
-    var container = document.querySelector("#body-container");
-    var moveX = left.getBoundingClientRect().width + resize.getBoundingClientRect().width / 2;
+    // var resize = document.querySelector("#resize");
+    // var left = document.querySelector("#editor-container")
+    // var container = document.querySelector("#body-container");
+    // var moveX = left.getBoundingClientRect().width + resize.getBoundingClientRect().width / 2;
     
-    var drag = false;
-    resize.addEventListener("mousedown", function (e) {
-       drag = true;
-       moveX = e.x;
-    });
+    // var drag = false;
+    // resize.addEventListener("mousedown", function (e) {
+    //    drag = true;
+    //    moveX = e.x;
+    // });
     
-    container.addEventListener("mousemove", function (e) {
-       moveX = e.x;
-       if (drag)
-          left.style.width =
-             moveX - resize.getBoundingClientRect().width / 2 + "px";
-    });
+    // container.addEventListener("mousemove", function (e) {
+    //    moveX = e.x;
+    //    if (drag)
+    //       left.style.width =
+    //          moveX - resize.getBoundingClientRect().width / 2 + "px";
+    // });
     
-    container.addEventListener("mouseup", function (e) {
-       drag = false;
-    });
+    // container.addEventListener("mouseup", function (e) {
+    //    drag = false;
+    // });
   
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
@@ -75,8 +75,8 @@ document.addEventListener("DOMContentLoaded", function() {
         }
       }
   
-      // Copy the head as the cell pointer
-      var cell = [...head]
+      // Copy the viewCoords as the cell pointer
+      var cell = [...viewCoords]
   
       // Draw all cells in the viewport
       for (let x = xMin; x <= xMax; x++) {

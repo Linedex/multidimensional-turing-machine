@@ -5,20 +5,22 @@
 // Extended Langton's Ant
 // {?:d;U,R,D,L} {?:r;_,1:9} {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} {?:r;1:9,_} {?:d;0,1,0,1} {?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
 
-// Gloabal TuringMachine++ varibles
-deltas = {}
-tape = {}
-head = []
-state = 'UNKNOWN'
+// TuringMachine++ varibles
+var deltas;
+var tape;
+var head;
+var state;
 
 // The tape dimension indicies to render as x,y,z
-xIndex = 0;
-yIndex = 1;
-zIndex = 2;
+var xIndex = 0;
+var yIndex = 1;
+var zIndex = 2;
 
-colors = {} // The render colors of each symbol
-showGrid = true;
-timeout = 100; // cycles until forced termination
+var viewCoords; // Coords of viewport for non x,y,z dimensions
+var colors; // The render colors of each symbol
+var showGrid = true;
+var timeout = 100; // cycles until forced termination
+var breakpoints;
 
 /* 
 ===SYNTAX====
@@ -47,27 +49,38 @@ Does not impact how the TM++ code functions.
 function parse() {
 
   // Get code from editor
-  const text = editor.getValue()
+  const text = editor.getValue();
 
   // Get code from textarea
   // const text = document.getElementById('editor').value;
 
-  deltas = {}
-  tape = {}
-  state = 'U' 
+  deltas = {};
+  tape = {};
+  state = 'start';
 
-  // Selects all comments (alternate method of removal)
-  // /((?<=\n)\s*)|(\s*(#.*))/g
+  timeout = 100;
+  colors = {};
+  viewCoords = [];
+  breakpoints = [];
 
-  parseConfigs(text);
+  // FIXME
+  nDim = 1;
+
+  // Iterate over all configs
+  for (match of text.matchAll(/^#--(?<line>.*)/gm)) {
+    line = match.groups['line'];
+    parseConfig(line);
+  }
 
   // Iterate over all non comment lines
-  for (noncom of text.matchAll(/^[^\S\n]*(?<line>[^#\s\n]+[^#\n]*[^#\s\n]+)/gm)) {
-    line = noncom.groups['line']
+  for (match of text.matchAll(/^[^\S\n]*(?<line>[^#\s\n]+[^#\n]*[^#\s\n]+)/gm)) {
+    line = match.groups['line'];
     parseGenerators(line);
   }
 
-  nDim = Object.keys(deltas)[0].split(',').length
+
+
+  // const nDim = Object.keys(deltas)[0].split(',').length;
 
   // Set the head position to all zeros
   head = Array.from({length: nDim}, x=>0);
@@ -91,37 +104,66 @@ function parse() {
  * #color <symbol> <html-color>
  *    Set the color of a symbol
  * 
- * [WIP]
  * #break [state=<state>] [symbol=<symbol>]
  *    Creates a breakpoint whenever the provided values matches the current values during runtime.
  * 
- * @param {string} text 
+ * @param {string} text The full input text
  */
-function parseConfigs(text) {
+function parseConfig(line) {
   
   // All comments before first line
-  const lines = text.match(/^(\s*#.*\n)+/g)[0].split("\n");
+  // const lines = text.match(/^(\s*#.*\n)+/g)[0].split("\n");
 
-  timeout = 100;
-  colors = {};
+  args = line.trim().split(/\s+/);
 
-  for (let line of lines) {
-    args = line.trim().split(/\s+/);
-    switch (args[0].slice(1)) {
+  switch (args[0]) {
 
-      case "color":
-        colors[args[1]] = args[2]
-        break;
-      
-      case "grid":
-        showGrid = args[1] == "true"
-        console.log(showGrid);
-        break;
+    case "start":
+      state = args[1];
+      break;
 
-      case "timeout":
-        timeout = parseInt(args[1]);
-        break;
-    }
+    case "color":
+      colors[args[1]] = args[2];
+      break;
+    
+    case "grid":
+      showGrid = args[1] == "true";
+      break;
+
+    case "timeout":
+      timeout = parseInt(args[1]);
+      break;
+
+    case "break":
+      breakpoints.push(args[1]+","+args[2])
+
+    case "view":
+      for (let i = 1; i < args.length; i++) {
+        switch (args[i]) {
+          // Save dimension index used for iteration when rendering the view
+          case "x": case "X": xIndex = i-1; break;
+          case "y": case "Y": yIndex = i-1; break;
+          case "z": case "Z": zIndex = i-1; break;
+          // Save dimension coord used for the view
+          default:
+            viewCoords[i-1] = parseInt(args[i]);
+        }
+      }
+      break;
+
+    case "tape":
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+          tape[[x,y,0]] = ".";
+        }
+      }  
+      tape[[2,4,0]] = 'X'
+      tape[[3,4,0]] = 'X'
+      tape[[4,4,0]] = 'X'
+      tape[[4,3,0]] = 'X'
+      tape[[3,2,0]] = 'X'
+      break;
+   
   }
 }
 
@@ -257,6 +299,10 @@ function parseGenerators(line) {
         start = parseInt(subvalues[0])
         end = parseInt(subvalues[1])
 
+        if (isNaN(start)) {
+          start = 0;
+        }
+
         // Check of optional third element is included
         if (subvalues.length == 3) {
           step = parseInt(subvalues[2])
@@ -304,6 +350,8 @@ function parseGenerators(line) {
       newLine += segs[j+1]
     }
 
+    console.log(newLine);
+
     // Parse the resulting line incase it also contains a generator
     parseGenerators(newLine);
 
@@ -323,8 +371,16 @@ function parseGenerators(line) {
  * @param {string} text 
  */
 function parseMachine(line) {
-  // console.log(line)
   const args = line.split(/\s+/);
+
+  // Calculate the number of dimensions as the largest dimension index value plus one
+  for (let i = 4; i < args.length; i+=2) {
+    dim = parseInt(args[i]);
+    if (dim + 1 > nDim) {
+      nDim = dim + 1;
+    }
+  }
+
   deltas[[args[0], args[1]]] = args.slice(2);
 }
 
@@ -338,7 +394,7 @@ function parseMachine(line) {
 function run(n) {
     
   // Update tape
-  for (let i=0; i<n; i++) {
+  for (let i = 0; i < n; i++) {
 
     // Check that current tape position is valid
     if (!(head in tape)) {
@@ -346,7 +402,7 @@ function run(n) {
     }
     
     // Delta index for state, symbol, head changes
-    // var state_symbol = [state, tape[head]]
+    var state_symbol = [state, tape[head]];
     
     // Set new state and write new symbol
     // state = deltas[state_symbol][0]
@@ -354,18 +410,23 @@ function run(n) {
     // var moves = deltas[state_symbol].slice(2)
 
     [state, tape[head], ...moves] = deltas[[state, tape[head]]]
-    
+
     // Remove _ from the tape
     if (tape[head] == "_") {
       delete tape[head]
     }
-    
+
     // Change head position
     for (var j = 0; j < moves.length; j+=2) {
       
       // Move head +/- for the dimension number
       if      (moves[j+1] == "+") {head[moves[j]]++} 
       else if (moves[j+1] == "-") {head[moves[j]]--}
+    }
+
+    if (breakpoints.includes(state_symbol.toString())) {
+      i = 1000000000000000000;
+      console.log("BREAK");
     }
   }
 }
