@@ -134,6 +134,7 @@ function parseConfig(line) {
     case "break":
       args = args.split(/\s+/);
       breakpoints.push(args[0]+","+args[1])
+      break;
 
     case "view":
       args = args.split(/\s+/);
