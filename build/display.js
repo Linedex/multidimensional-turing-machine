@@ -10,53 +10,57 @@ document.addEventListener("DOMContentLoaded", function() {
     const ctx = canvas.getContext("2d");
   
     // Initial grid properties
-    let cellSize = 50; // Pixel buffer size
     let panX = 0;
     let panY = 0;
-    let scale = 1;
+    let scale = 100;
 
 
 
-
-
-    function drawGrid() {
+    /**
+     * The main function that draws the entire view
+     */
+    function draw() {
 
       // Reset canvas
       ctx.setTransform();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.strokeStyle = "#ccc";
-      ctx.lineWidth = Math.min(scale, 1/scale); // Prevent lineweight from scaling unless zoomed far out 
+      ctx.lineWidth = Math.min(0.01, 1/scale); // Prevent lineweight from scaling unless zoomed far out 
       ctx.setTransform(scale, 0, 0, scale, panX, panY); // Scale to current view
       
       // Extra cells to display outside of viewport
       const offset = 1;
   
       // Calculate the boundaries of the tape's viewport  
-      const xMin = Math.round((0 - panX) / (cellSize * scale)) - offset;
-      const xMax = Math.round((canvas.width - panX) / (cellSize * scale)) + offset;
-      const yMin = Math.round((0 - panY) / (cellSize * scale)) - offset;
-      const yMax = Math.round((canvas.height - panY) / (cellSize * scale)) + offset;
+      var xMin = Math.round(-panX / scale) - offset;
+      var xMax = Math.round((canvas.width - panX) / scale) + offset;
+      var yMin = Math.round(-panY / scale) - offset;
+      var yMax = Math.round((canvas.height - panY) / scale) + offset;
 
       // Draw gridlines
       if (showGrid) {
         // Draw vertical gridlines
         for (let x = xMin; x <= xMax; x++) {
-          const xPos = x * cellSize;
           ctx.beginPath();
-          ctx.moveTo(xPos, yMin * cellSize);
-          ctx.lineTo(xPos, yMax * cellSize);
+          ctx.moveTo(x, yMin);
+          ctx.lineTo(x, yMax);
           ctx.stroke();
         }
         // Draw horizontal gridlines
         for (let y = yMin; y <= yMax; y++) {
-          const yPos = y * cellSize;
           ctx.beginPath();
-          ctx.moveTo(xMin * cellSize, yPos);
-          ctx.lineTo(xMax * cellSize, yPos);
+          ctx.moveTo(xMin, y);
+          ctx.lineTo(xMax, y);
           ctx.stroke();
         }
       }
   
+      // Shrink bounds if they excede tape bounds
+      // xMin = Math.min(xMin, tapeBoundsMin[xIndex]);
+      // yMin = Math.min(yMin, tapeBoundsMin[yIndex]);
+      // xMax = Math.max(xMax, tapeBoundsMax[xIndex]);
+      // yMax = Math.max(yMax, tapeBoundsMax[yIndex]);
+
       // Copy the viewCoords as the cell pointer
       var cell = [...viewCoords]
   
@@ -71,35 +75,31 @@ document.addEventListener("DOMContentLoaded", function() {
           // Draw cell's symbol
           if (cell in tape) {
   
-            // Position of cell
-            const xPos = x * cellSize;
-            const yPos = y * cellSize;
             const symbol = tape[cell]
             
             // Fill in symbol color
             if (symbol in colors) {
               ctx.fillStyle = colors[symbol];
-              ctx.fillRect(xPos, yPos, cellSize, cellSize);
+              ctx.fillRect(x, y, 1, 1);
             } else {
               ctx.textAlign = "center";
               ctx.fillStyle = '#abb2bf';
-              ctx.fillText(symbol, xPos + 0.5 * cellSize, yPos + 0.5 * cellSize);
+              ctx.textBaseline = "middle";
+              ctx.font = ".5px monospace";
+              ctx.fillText(symbol, x + 0.5, y + 0.5);
             }
           } 
         }
       }
-  
+      
       // Draw head
-      const xPos = head[xIndex] * cellSize;
-      const yPos = head[yIndex] * cellSize;
+      const x = head[xIndex];
+      const y = head[yIndex];
       ctx.lineWidth = 2 * Math.min(scale, 1/scale); // Prevent lineweight from scaling unless zoomed far out 
       ctx.strokeStyle = "red";
-      ctx.strokeRect(xPos, yPos, cellSize, cellSize);
+      ctx.strokeRect(x, y, 1, 1);
     }
   
-
-
-
 
 
     function handleWheel(event) {
@@ -113,43 +113,48 @@ document.addEventListener("DOMContentLoaded", function() {
       panY = ( panY - yPos ) * delta + yPos;
       scale *= delta;
       updateCoords(event);
-      drawGrid();
+      draw();
     }
   
     function handleMousemove(event) {  
       if (event.buttons === 1) {
         panX += event.movementX;
         panY += event.movementY;
-        drawGrid();
+        draw();
       }
       updateCoords(event);
     }
 
     function handleAuxclick(event) {
+      // Refocus to tape bounds
       if (event.button === 1) {
-        panX = panY = 0;
-        scale = 1;
-        drawGrid();
+        const rect = canvas.getBoundingClientRect()
+        const xMin = tapeBoundsMin[xIndex] - 1;
+        const yMin = tapeBoundsMin[yIndex] - 1;
+        const xMax = tapeBoundsMax[xIndex] + 2; //FIXME this should be a 1
+        const yMax = tapeBoundsMax[yIndex] + 2;
+        scale = Math.min(rect.width / (xMax - xMin), rect.height / (yMax - yMin))
+        panX = (rect.width  - (xMin + xMax) * scale) / 2;
+        panY = (rect.height - (yMin + yMax) * scale) / 2;
+        draw();
       }
     }
 
     function handleResize(event) {
       canvas.width = canvas.getBoundingClientRect().width;
       canvas.height = canvas.getBoundingClientRect().height; 
-      drawGrid();
+      draw();
     }
 
     function updateCoords(event) {
       const rect = canvas.getBoundingClientRect()
       const xPos = event.clientX - rect.left;
       const yPos = event.clientY - rect.top;
-      const x = (xPos - panX) / cellSize / scale;
-      const y = (yPos - panY) / cellSize / scale;
-      document.getElementById("coords").innerHTML = '' + x + ', ' + y;
+      const x = (xPos - panX) / scale;
+      const y = (yPos - panY) / scale;
+      document.getElementById("coords").innerHTML = scale + ', ' + x + ', ' + y;
     }
     
-
-
 
 
     // Canvas does not have a native resize listener 
@@ -161,6 +166,6 @@ document.addEventListener("DOMContentLoaded", function() {
       
     parse(); // Initial parse
   
-    drawGrid(); // Initial draw
+    draw(); // Initial draw
   });
   
