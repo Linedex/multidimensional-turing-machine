@@ -6,39 +6,21 @@
 // Load a 2D slice of the TM++ onto the canvas
 document.addEventListener("DOMContentLoaded", function() {
 
-    // var resize = document.querySelector("#resize");
-    // var left = document.querySelector("#editor-container")
-    // var container = document.querySelector("#body-container");
-    // var moveX = left.getBoundingClientRect().width + resize.getBoundingClientRect().width / 2;
-    
-    // var drag = false;
-    // resize.addEventListener("mousedown", function (e) {
-    //    drag = true;
-    //    moveX = e.x;
-    // });
-    
-    // container.addEventListener("mousemove", function (e) {
-    //    moveX = e.x;
-    //    if (drag)
-    //       left.style.width =
-    //          moveX - resize.getBoundingClientRect().width / 2 + "px";
-    // });
-    
-    // container.addEventListener("mouseup", function (e) {
-    //    drag = false;
-    // });
-  
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
   
     // Initial grid properties
-    let cellSize = 50;
+    let cellSize = 50; // Pixel buffer size
     let panX = 0;
     let panY = 0;
     let scale = 1;
-  
+
+
+
+
+
     function drawGrid() {
-  
+
       // Reset canvas
       ctx.setTransform();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -50,11 +32,11 @@ document.addEventListener("DOMContentLoaded", function() {
       const offset = 1;
   
       // Calculate the boundaries of the tape's viewport  
-      const xMin = parseInt((0 - panX) / (cellSize * scale)) - offset;
-      const xMax = parseInt((canvas.width - panX) / (cellSize * scale)) + offset;
-      const yMin = parseInt((0 - panY) / (cellSize * scale)) - offset;
-      const yMax = parseInt((canvas.height - panY) / (cellSize * scale)) + offset;
-      
+      const xMin = Math.round((0 - panX) / (cellSize * scale)) - offset;
+      const xMax = Math.round((canvas.width - panX) / (cellSize * scale)) + offset;
+      const yMin = Math.round((0 - panY) / (cellSize * scale)) - offset;
+      const yMax = Math.round((canvas.height - panY) / (cellSize * scale)) + offset;
+
       // Draw gridlines
       if (showGrid) {
         // Draw vertical gridlines
@@ -115,33 +97,68 @@ document.addEventListener("DOMContentLoaded", function() {
       ctx.strokeRect(xPos, yPos, cellSize, cellSize);
     }
   
-    function handleZoom(event) {
+
+
+
+
+
+    function handleWheel(event) {
       const zoomFactor = 0.1;
       const delta = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
+      const rect = canvas.getBoundingClientRect()
+      const xPos = event.clientX - rect.left;
+      const yPos = event.clientY - rect.top;
+      // Focus zoom on the mouse
+      panX = ( panX - xPos ) * delta + xPos;
+      panY = ( panY - yPos ) * delta + yPos;
       scale *= delta;
+      updateCoords(event);
       drawGrid();
     }
   
-    function handlePan(event) {
+    function handleMousemove(event) {  
       if (event.buttons === 1) {
         panX += event.movementX;
         panY += event.movementY;
         drawGrid();
       }
+      updateCoords(event);
     }
-  
-    function handleMiddeClick(event) {
+
+    function handleAuxclick(event) {
       if (event.button === 1) {
         panX = panY = 0;
         scale = 1;
         drawGrid();
       }
     }
-  
-    canvas.addEventListener('auxclick',handleMiddeClick);
-    canvas.addEventListener("wheel", handleZoom);
-    canvas.addEventListener("mousemove", handlePan);
-  
+
+    function handleResize(event) {
+      canvas.width = canvas.getBoundingClientRect().width;
+      canvas.height = canvas.getBoundingClientRect().height; 
+      drawGrid();
+    }
+
+    function updateCoords(event) {
+      const rect = canvas.getBoundingClientRect()
+      const xPos = event.clientX - rect.left;
+      const yPos = event.clientY - rect.top;
+      const x = (xPos - panX) / cellSize / scale;
+      const y = (yPos - panY) / cellSize / scale;
+      document.getElementById("coords").innerHTML = '' + x + ', ' + y;
+    }
+    
+
+
+
+
+    // Canvas does not have a native resize listener 
+    new ResizeObserver(handleResize).observe(canvas)
+
+    canvas.addEventListener('auxclick',handleAuxclick);
+    canvas.addEventListener("wheel", handleWheel);
+    canvas.addEventListener("mousemove", handleMousemove);
+      
     parse(); // Initial parse
   
     drawGrid(); // Initial draw

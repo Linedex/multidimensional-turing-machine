@@ -22,7 +22,7 @@ CodeMirror.defineSimpleMode("tm++", {
 
       // Config comment
       {regex: /(#--)(\w+)/, token: ["comment", "keyword"]},
-
+      {regex: /\s*(?:fill|set|to|with)/, token: "keyword"},
       {regex: /#.*/, token: "comment"},
 
       // Full Line
@@ -44,7 +44,7 @@ CodeMirror.defineSimpleMode("tm++", {
       {regex: /[\{\[\(]/, indent: true},
       {regex: /[\}\]\)]/, dedent: true},
 
-      {regex: /[a-zA-Z]\S*/, token: "variable"},
+      // {regex: /[a-zA-Z]\S*/, token: "variable"},
 
     ],
 

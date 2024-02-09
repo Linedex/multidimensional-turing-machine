@@ -64,7 +64,7 @@ function parse() {
   breakpoints = [];
 
   // FIXME
-  nDim = 1;
+  nDims = 1;
 
   // Iterate over all configs
   for (match of text.matchAll(/^#--(?<line>.*)/gm)) {
@@ -79,7 +79,7 @@ function parse() {
   }
 
   // Set the head position to all zeros
-  head = Array.from({length: nDim}, x=>0);
+  head = Array.from({length: nDims}, x=>0);
 
   run(timeout);
 }
@@ -152,18 +152,45 @@ function parseConfig(line) {
       break;
 
     case "tape":
-      for (let y = 0; y < 20; y++) {
-        for (let x = 0; x < 20; x++) {
-          tape[[x,y,0]] = ".";
-        }
-      }  
-      tape[[2,4,0]] = 'X'
-      tape[[3,4,0]] = 'X'
-      tape[[4,4,0]] = 'X'
-      tape[[4,3,0]] = 'X'
-      tape[[3,2,0]] = 'X'
-      break;
-   
+
+      // Parse subkeyword and additional args
+      [subkeyword, args] = args.trim().split(/(?<=^\S*)\s+/);
+      args = args.trim().split(/\s+/);
+
+      newSymbol = args.slice(args.length - 1);
+
+      switch (subkeyword) {
+
+        case "fill":
+        
+          nDims = (args.length - 1) / 2;
+
+          start = args.slice(0, nDims).map(Number); // Start values
+          stop = args.slice(nDims, 2*nDims).map(Number); // Stop values
+          cell = [] // Current cell to fill 
+
+          // Recursive N dimensional fill
+          function fill(d) {
+            if (d >= nDims) { 
+               tape[cell] = newSymbol;
+               return;
+            }
+            for (let i = start[d]; i < stop[d]; i++) { 
+               cell[d] = i;
+               fill(d+1);
+            }
+          }
+
+          fill(0);
+          break;
+
+        case "set":
+          cell = args.slice(0, args.length - 1).map(Number);
+          tape[cell] = newSymbol;
+          break;
+    
+      }
+      
   }
 }
 
@@ -350,8 +377,6 @@ function parseGenerators(line) {
       newLine += segs[j+1]
     }
 
-    console.log(newLine);
-
     // Parse the resulting line incase it also contains a generator
     parseGenerators(newLine);
 
@@ -376,8 +401,8 @@ function parseMachine(line) {
   // Calculate the number of dimensions as the largest dimension index value plus one
   for (let i = 4; i < args.length; i+=2) {
     dim = parseInt(args[i]);
-    if (dim + 1 > nDim) {
-      nDim = dim + 1;
+    if (dim + 1 > nDims) {
+      nDims = dim + 1;
     }
   }
 
@@ -402,14 +427,18 @@ function run(n) {
     }
     
     // Delta index for state, symbol, head changes
-    var state_symbol = [state, tape[head]];
+    var stateSymbol = [state, tape[head]];
     
     // Set new state and write new symbol
     // state = deltas[state_symbol][0]
     // tape[head] = deltas[state_symbol][1]
     // var moves = deltas[state_symbol].slice(2)
 
-    [state, tape[head], ...moves] = deltas[[state, tape[head]]]
+    if (!(stateSymbol in deltas)) {
+      dispError(stateSymbol + " is not a valid transition");
+    }
+
+    [state, tape[head], ...moves] = deltas[stateSymbol]
 
     // Remove _ from the tape
     if (tape[head] == "_") {
@@ -424,9 +453,13 @@ function run(n) {
       else if (moves[j+1] == "-") {head[moves[j]]--}
     }
 
-    if (breakpoints.includes(state_symbol.toString())) {
+    if (breakpoints.includes(stateSymbol.toString())) {
       i = 1000000000000000000;
-      console.log("BREAK");
     }
   }
+}
+
+
+function dispError(text) {
+  alert(text);
 }

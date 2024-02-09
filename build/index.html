@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <script src="script.js"></script>
   <script src="display.js"></script>
   <link rel="stylesheet" href="style.css">
@@ -13,6 +15,7 @@
   <link rel="stylesheet" href="https://codemirror.net/5/addon/scroll/simplescrollbars.css">
   <!-- <link rel="stylesheet" href="https://codemirror.net/5/addon/dialog/dialog.css"> -->
   <!-- <link rel="stylesheet" href="https://codemirror.net/5/addon/search/matchesonscrollbar.css"> -->
+
   <!-- Include CodeMirror scripts -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
   <script src="https://codemirror.net/5/addon/dialog/dialog.js"></script>
@@ -28,12 +31,49 @@
   <script src="https://codemirror.net/5/addon/selection/active-line.js"></script>
   <!-- <script src="https://codemirror.net/5/addon/comment/comment.js"></script> -->
 </head>
+
 <body>
 
-<!-- Code Editor -->
-<div class="container" id="editor-container">
-<label for="editor">TuringMachine++</label>
-<textarea id="editor" rows="8" placeholder="Enter text">
+  <!-- Top Toolbar -->
+  <div class="toolbar">
+    <div class="dropdown">
+      <button>File</button>
+      <div class="dropdown-content">
+        <button onclick="location.reload()">New</button>
+        <button onclick="showOpenFilePicker()">Open</button>
+        <button onclick="dispError('Not Implemented Yet')">Save</button>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button>Edit</button>
+      <div class="dropdown-content">
+        <button onclick="dispError('Not Implemented Yet')">Find</button>
+        <button onclick="dispError('Not Implemented Yet')">Replace</button>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button>Selection</button>
+      <div class="dropdown-content">
+        <button onclick="dispError('Not Implemented Yet')">Select All</button>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button>View</button>
+      <div class="dropdown-content">
+        <button onclick="dispError('Not Implemented Yet')">Toggle Grid</button>
+        <button onclick="dispError('Not Implemented Yet')">Change View</button>
+      </div>
+    </div>
+    <button onclick="parse()">Run</button>
+    <div id="coords">0, 0</div>
+  </div>
+
+  <div id="main-container">
+
+    <!-- Code Editor -->
+    <div class="container" id="editor-container">
+      <label for="editor">TuringMachine++</label>
+      <textarea id="editor" placeholder="Enter code">
 #--color 1 rgb(238,130,238)
 #--timeout 11000
 #--grid true
@@ -49,19 +89,20 @@ U 1 L _ 0 -
 R 1 U _ 1 +
 D 1 R _ 0 +
 L 1 D _ 1 -</textarea>
-<button onclick="parse()">Load and Run</button>
-</div>
+    </div>
 
-<!-- Resize Bar -->
-<!-- <div class="resize" id="resize"></div> -->
+    <span class="resize" style="border-left-width: 2px; border-right-width: 2px; width: 2px; margin: 0px;"></span>
 
-<!-- Tape Display  -->
-<!-- <div class="container" id="canvas-container"> -->
-<canvas id="canvas" width="1000" height="1000"></canvas>
-<!-- </div> -->
+    <!-- Tape Display  -->
+    <!-- <div class="container" id="canvas-container"> -->
+    <canvas id="canvas" width="1000" height="1000"></canvas>
+    <!-- </div> -->
 
-<!-- Initialize CodeMirror -->
-<script src="editor.js"></script>
+  </div>
+
+  <!-- Initialize CodeMirror -->
+  <script src="editor.js"></script>
 
 </body>
+
 </html>

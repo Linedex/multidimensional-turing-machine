@@ -1,27 +1,86 @@
 body {
     font-family: 'Monaco', 'Courier New', monospace;
     background-color: #282c34;
-    color: #abb2bf;
+    color: #ccc;
     margin: 0;
-    display: flex;
-    align-items: stretch;
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    font-size: 12pt;
 }
 
-/* .container {
-    display: flex;   
-} */
+.toolbar {
+    overflow: hidden;
+    background-color: #333;
+}
+
+button {
+    color: inherit;
+    background-color: inherit;
+    border: none;
+    text-align: center;
+    padding: .5em 10px;
+    text-decoration: none;
+    font-size: 12pt;
+    margin: 0;
+}
+
+button:hover {
+    color: #eee;
+    background-color: #555;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+    float: left;
+    overflow: hidden;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+/* (Hidden by Default) */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #444;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 5;
+}
+
+.dropdown-content button {
+    float: none;
+    display: block;
+    text-align: left;
+    width: auto;
+}
+
+.dropdown-content button:hover {
+    background-color: #0c4f80;
+}
+
+#coords {
+    float: right;
+    padding: .5em 10px;
+}
+
+#main-container {
+    width: 100%;
+    height: calc(100% - 2em);
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+}
 
 #editor-container {
-    display: flex;
     padding: 20px;
-    flex: 1;
-    width: calc(100% - 100vh - 40px);
+    display: flex;
     flex-direction: column;
     align-items: stretch;
-    resize: none;
+    flex-basis: 3;
 }
 
 label {
@@ -30,20 +89,7 @@ label {
     color: #61afef;
 }
 
-/* Editor is replaced by CodeMirror */
-/* #editor {
-    flex: 1;
-    padding: 10px;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-    border: 1px solid #3e4451;
-    background-color: #1e2227;
-    color: #abb2bf;
-    border-radius: 4px;
-    resize: none;
-} */
-
-/* .resize {
+.resize {
     background: #444857;
     height: 100%;
     width: 14px;
@@ -51,28 +97,13 @@ label {
     flex-shrink: 0;
     position: relative;
     z-index: 10;
-} */
+}
 
 #canvas {
-    flex: 1;
     background-color: #1e2227;
     border: 1px solid #3e4451;
-    resize: none;
-}
-
-button {
-    background-color: #61afef;
-    color: white;
-    padding: 12px 18px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    width: auto;
-    font-size: 1.2em;
-}
-
-button:hover {
-    background-color: #528bff;
+    min-width: 0;
+    flex: 1 1 0;
 }
 
 /* Code Mirror */
@@ -84,7 +115,8 @@ button:hover {
     box-sizing: border-box;
     border: 1px solid #3e4451;
     border-radius: 4px;
-    resize: none;
+    resize: horizontal;
+    max-width: calc(100vw - 40px);
 }
 
 .breakpoints {
@@ -94,147 +126,3 @@ button:hover {
 .breakpoint {
     color: #822;
 }
-
-
-
-
-
-
-
-
-
-.cm-s-monokai.CodeMirror {
-    background: #272822;
-    color: #f8f8f2
-}
-
-.cm-s-monokai div.CodeMirror-selected {
-    background: #49483e
-}
-
-.cm-s-monokai .CodeMirror-line::selection,
-.cm-s-monokai .CodeMirror-line>span::selection,
-.cm-s-monokai .CodeMirror-line>span>span::selection {
-    background: rgba(73, 72, 62, .99)
-}
-
-.cm-s-monokai .CodeMirror-line::-moz-selection,
-.cm-s-monokai .CodeMirror-line>span::-moz-selection,
-.cm-s-monokai .CodeMirror-line>span>span::-moz-selection {
-    background: rgba(73, 72, 62, .99)
-}
-
-.cm-s-monokai .CodeMirror-gutters {
-    background: #272822;
-    border-right: 0
-}
-
-.cm-s-monokai .CodeMirror-guttermarker {
-    color: #fff
-}
-
-.cm-s-monokai .CodeMirror-guttermarker-subtle {
-    color: #d0d0d0
-}
-
-.cm-s-monokai .CodeMirror-linenumber {
-    color: #d0d0d0
-}
-
-.cm-s-monokai .CodeMirror-cursor {
-    border-left: 1px solid #f8f8f0
-}
-
-.cm-s-monokai span.cm-comment {
-    color: #75715e
-}
-
-.cm-s-monokai span.cm-atom {
-    color: #ae81ff
-}
-
-.cm-s-monokai span.cm-number {
-    color: #ae81ff
-}
-
-.cm-s-monokai span.cm-comment.cm-attribute {
-    color: #97b757
-}
-
-.cm-s-monokai span.cm-comment.cm-def {
-    color: #bc9262
-}
-
-.cm-s-monokai span.cm-comment.cm-tag {
-    color: #bc6283
-}
-
-.cm-s-monokai span.cm-comment.cm-type {
-    color: #5998a6
-}
-
-.cm-s-monokai span.cm-attribute,
-.cm-s-monokai span.cm-property {
-    color: #a6e22e
-}
-
-.cm-s-monokai span.cm-keyword {
-    color: #f92672
-}
-
-.cm-s-monokai span.cm-builtin {
-    color: #66d9ef
-}
-
-.cm-s-monokai span.cm-string {
-    color: #e6db74
-}
-
-.cm-s-monokai span.cm-variable {
-    color: #f8f8f2
-}
-
-.cm-s-monokai span.cm-variable-2 {
-    color: #9effff
-}
-
-.cm-s-monokai span.cm-type,
-.cm-s-monokai span.cm-variable-3 {
-    color: #66d9ef
-}
-
-.cm-s-monokai span.cm-def {
-    color: #fd971f
-}
-
-.cm-s-monokai span.cm-bracket {
-    color: #f8f8f2
-}
-
-.cm-s-monokai span.cm-tag {
-    color: #f92672
-}
-
-.cm-s-monokai span.cm-header {
-    color: #ae81ff
-}
-
-.cm-s-monokai span.cm-link {
-    color: #ae81ff
-}
-
-.cm-s-monokai span.cm-error {
-    background: #f92672;
-    color: #f8f8f0
-}
-
-.cm-s-monokai .CodeMirror-activeline-background {
-    background: #373831
-}
-
-.cm-s-monokai .CodeMirror-matchingbracket {
-    text-decoration: underline;
-    color: #fff !important
-}
-
-/*# sourceMappingURL=monokai.min.css.map */
