@@ -39,6 +39,12 @@ function parseText(text) {
 
   nDims = 1;
 
+  text = text.replace(/\\\n/g,"");
+
+  // text = text.replace(/{\\\n/,"");
+
+  // (?<keep>{[^{}\n]*)\n
+
   // Iterate over all configs
   for (match of text.matchAll(/^#--(?<line>.*)/gm)) {
     line = match.groups['line'];
@@ -95,9 +101,9 @@ function parseConfig(line) {
     case "color":
       args = args.split(/\s+/);
       if (args[0] == "auto") {
-        for (let i = 0; i < array.length; i++) {
-          const element = array[i];
-
+        const step = 360 / args[1];  
+        for (let i = 0; i < args[1]; i++) {
+          colors[i+1] = "hsl(" + step * i + ",100%,50%)";
         }
       } else {
         colors[args[0]] = args[1];

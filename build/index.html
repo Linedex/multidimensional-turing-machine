@@ -11,26 +11,40 @@
   <link rel="stylesheet" href="style.css">
 
   <!-- Include CodeMirror styles -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/theme/monokai.min.css">
-  <link rel="stylesheet" href="https://codemirror.net/5/addon/scroll/simplescrollbars.css">
-  <!-- <link rel="stylesheet" href="https://codemirror.net/5/addon/dialog/dialog.css"> -->
-  <!-- <link rel="stylesheet" href="https://codemirror.net/5/addon/search/matchesonscrollbar.css"> -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/yonce.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.css">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.css">
 
   <!-- Include CodeMirror scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js"></script>
-  <script src="https://codemirror.net/5/addon/dialog/dialog.js"></script>
-  <script src="https://codemirror.net/5/addon/mode/simple.js"></script>
-  <script src="https://codemirror.net/5/addon/edit/closebrackets.js"></script>
-  <script src="https://codemirror.net/5/addon/edit/matchbrackets.js"></script>
-  <!-- <script src="https://codemirror.net/5/addon/search/searchcursor.js"></script> -->
-  <!-- <script src="https://codemirror.net/5/addon/search/search.js"></script> -->
-  <!-- <script src="https://codemirror.net/5/addon/scroll/annotatescrollbar.js"></script> -->
-  <!-- <script src="https://codemirror.net/5/addon/search/matchesonscrollbar.js"></script> -->
-  <!-- <script src="https://codemirror.net/5/addon/search/match-highlighter.js"></script> -->
-  <script src="https://codemirror.net/5/addon/scroll/simplescrollbars.js"></script>
-  <script src="https://codemirror.net/5/addon/selection/active-line.js"></script>
-  <!-- <script src="https://codemirror.net/5/addon/comment/comment.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/simple.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/dialog/dialog.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/search.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/annotatescrollbar.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/matchesonscrollbar.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/match-highlighter.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/jump-to-line.js"></script>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/scroll/simplescrollbars.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/comment/comment.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/keymap/sublime.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/wrap/hardwrap.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/indent-fold.js"></script>
 </head>
 
 <body>
@@ -66,6 +80,7 @@
       </div>
     </div>
     <button onclick="parse()">Run</button>
+    <button onclick="updateStep();draw();">Step</button>
     <div id="coords">0, 0</div>
   </div>
 
@@ -73,7 +88,6 @@
 
     <!-- Code Editor -->
     <div class="container" id="editor-container">
-      <label for="editor">TuringMachine++</label>
       <textarea id="editor" placeholder="Enter code">
 #--color 1 rgb(238,130,238)
 #--timeout 11000

@@ -21,45 +21,66 @@ CodeMirror.defineSimpleMode("tm++", {
     start: [
 
       // Config comment
-      {regex: /(#--)(\w+)/, token: ["comment", "keyword"]},
-      {regex: /\s*(?:fill|set|to|with)/, token: "keyword"},
+      {regex: /\s*(#--)(\w+)/, token: ["comment", "keyword"], sol: true},
+      // {regex: /\s*(?:fill|set|to|with)/, token: "keyword"},
       {regex: /#.*/, token: "comment"},
 
       // Full Line
-      {regex: /^(\s*[^\d\s+-]\S*\s+)(\S+\s+)(\S+\s+)(\S+)/, 
-       token: ["variable-1", "string", "variable-1", "string"]},
+      {regex: /\s*(?=\S)/, token: "keyword", next: "state", sol: true},
 
       {regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string"},
-      // {regex: /(?:start|color|timeout|grid|view)\b/, token: "keyword"},
       {regex: /true|false|null|undefined/, token: "atom"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},      
       
-      // Generators
-      // {regex: /[:;,]+/, token: "operator"},
-      {regex: /[+-]+/, token: "variable-2"},
-      
-      // {regex: /{/, token: "string", next: "generator"},
+      {regex: /{/, token: "bracket", push: "generator"},
 
-      // Indent and dedent properties guide autoindentation
-      {regex: /[\{\[\(]/, indent: true},
-      {regex: /[\}\]\)]/, dedent: true},
-
-      // {regex: /[a-zA-Z]\S*/, token: "variable"},
-
+      {regex: /[\[\(]/, indent: true},
+      {regex: /[\]\)]/, dedent: true},
     ],
 
-    // The multi-line generator state.
-    // generator: [
-    //     {regex: /[:;,]/, token: "variable-3"},
-    //     {regex: /}/, token: "string", next: "start"},
-    //     {regex: /[^:;,}]/, token: "string"}
-    // ],
+    state: [
+      {regex: /\s+/, next: "symbol"},
+      {regex: /{/, token: "bracket", indent: true, push: "stateGenerator"},
+      {regex: /[^\s{]+/, token: "variable-2"},
+    ],
 
-    // The multi-line comment state.
-    // comment: [
-    //   {regex: /.*?\*\//, token: "comment", next: "start"},
-    //   {regex: /.*/, token: "comment"}
-    // ],
+    symbol: [
+      {regex: /\s+/, next: "newState"},
+      {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
+      {regex: /[^\s{]+/, token: "string"},
+    ],
+
+    newState: [
+      {regex: /\s+/, next: "newSymbol"},
+      {regex: /{/, token: "bracket", indent: true, push: "stateGenerator"},
+      {regex: /[^\s{]+/, token: "variable-2"},
+    ],
+
+    newSymbol: [
+      {regex: /\s+/, next: "start"},
+      {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
+      {regex: /[^\s{]+/, token: "string"},
+    ],
+
+    stateGenerator: [
+      {regex: /}/, token: "bracket", dedent: true, pop: true},
+      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
+      {regex: /[^\s}]/, token: "variable-2"},
+    ],
+
+    symbolGenerator: [
+      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
+      {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
+      {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
+      {regex: /}/, token: "bracket", dedent: true, pop: true},
+      // {regex: /[^\s}]/, token: "string"},
+    ],
+
+    generator: [
+      {regex: /}/, token: "bracket", dedent: true, pop: true},
+      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
+      {regex: /[^\s}]/, token: "string"},
+    ],
 
     // The meta property contains global information about the mode. It
     // can contain properties like lineComment, which are supported by
@@ -74,15 +95,18 @@ CodeMirror.defineSimpleMode("tm++", {
 // Replace the textarea with CodeMirror
 var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
     mode: 'tm++',
-    theme: 'monokai',
+    // theme: 'monokai',
+    theme: 'yonce',
+    keyMap: "sublime",
     lineNumbers: true,
     showMatchesOnScrollbar: true,
     autoCloseBrackets: true, // addon/edit/closebrackets.js
     styleActiveLine: true, // addon/selection/active-line.js
     matchBrackets: true, // edit/matchbrackets.js
-    // extraKeys: {"Alt-F": "findPersistent"},
+    extraKeys: {"Alt-F": "findPersistent"},
+    // lineWrapping: true,
     scrollbarStyle: "simple",
-    gutters: ["CodeMirror-linenumbers", "breakpoints"]
+    gutters: ["CodeMirror-linenumbers", "breakpoints"],
 });
 
 // Replace tab with spaces
