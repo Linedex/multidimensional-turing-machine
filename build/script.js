@@ -216,7 +216,7 @@ function run() {
   // Update tape
   for (let i = 0; i < timeout; i++) {
 
-    step();
+    stepMachine();
 
     // Delta index for state, symbol, head changes
     var stateSymbol = [state, tape[head]];
@@ -234,7 +234,7 @@ function run() {
 /**
  * Progress the machine by a single action
  */
-function step() {
+function stepMachine() {
   // Check that current tape position is valid
   if (!(head in tape)) {
     tape[head] = "_"
