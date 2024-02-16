@@ -9,12 +9,19 @@ body {
     font-size: 12pt;
 }
 
+/* Toolbar */
+
 .toolbar {
     overflow: hidden;
     background-color: #333;
 }
 
-button {
+.toolbar #icon {
+    float: left;
+    height: 2em;
+}
+
+.toolbar button {
     color: inherit;
     background-color: inherit;
     border: none;
@@ -25,23 +32,27 @@ button {
     margin: 0;
 }
 
-button:hover {
+.toolbar #shortcut {
+    float: right;
+}
+
+.toolbar button:hover {
     color: #eee;
     background-color: #555;
 }
 
 /* The container <div> - needed to position the dropdown content */
-.dropdown {
+.toolbar .dropdown {
     float: left;
     overflow: hidden;
 }
 
-.dropdown:hover .dropdown-content {
+.toolbar .dropdown:hover .dropdown-content {
     display: block;
 }
 
 /* (Hidden by Default) */
-.dropdown-content {
+.toolbar .dropdown-content {
     display: none;
     position: absolute;
     background-color: #444;
@@ -50,15 +61,24 @@ button:hover {
     z-index: 5;
 }
 
-.dropdown-content button {
+.toolbar .dropdown-content button {
     float: none;
     display: block;
     text-align: left;
-    width: auto;
+    width: 100%;
 }
 
-.dropdown-content button:hover {
+.toolbar .dropdown-content button:hover {
     background-color: #0c4f80;
+}
+
+.toolbar #button-bar {
+    float: right;
+}
+
+#state {
+    float: right;
+    padding: .5em 10px;
 }
 
 #coords {
@@ -66,9 +86,11 @@ button:hover {
     padding: .5em 10px;
 }
 
+/* Main */
+
 #main-container {
     width: 100%;
-    height: calc(100% - 2em);
+    height: calc(100% - 4em);
     margin: 0;
     display: flex;
     flex-direction: row;
@@ -76,20 +98,13 @@ button:hover {
 }
 
 #editor-container {
-    padding: 20px;
+    padding: 1em;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    flex-basis: 3;
 }
 
-label {
-    font-size: 1.2em;
-    margin-bottom: 5px;
-    color: #61afef;
-}
-
-.resize {
+/* .resize {
     background: #444857;
     height: 100%;
     width: 14px;
@@ -97,7 +112,7 @@ label {
     flex-shrink: 0;
     position: relative;
     z-index: 10;
-}
+} */
 
 #canvas {
     background-color: #1e2227;
@@ -106,12 +121,23 @@ label {
     flex: 1 1 0;
 }
 
+/* Footer */
+
+.footer {
+    bottom: 0;
+    position: fixed;
+    height: 2em;
+    width: 100%;
+    overflow: hidden;
+    background-color: #333;
+}
+
 /* Code Mirror */
 
 .CodeMirror {
     flex: 1;
     padding: 10px;
-    margin-bottom: 15px;
+    /* margin-bottom: 15px; */
     box-sizing: border-box;
     border: 1px solid #3e4451;
     border-radius: 4px;

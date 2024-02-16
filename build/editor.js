@@ -63,23 +63,29 @@ CodeMirror.defineSimpleMode("tm++", {
     ],
 
     stateGenerator: [
+      // {regex: //, token: "bracket", dedent: true, pop: true},
       {regex: /}/, token: "bracket", dedent: true, pop: true},
+      {regex: /{/, token: "bracket", indent: true, push: "stateGenerator"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      {regex: /[^\s}]/, token: "variable-2"},
+      {regex: /.:/, token: "tag"},
+      {regex: /[^{}:,;]/, token: "variable-2"},
     ],
 
     symbolGenerator: [
-      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
-      {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
       {regex: /}/, token: "bracket", dedent: true, pop: true},
-      // {regex: /[^\s}]/, token: "string"},
+      {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
+      {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
+      // {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
+      {regex: /.:/, token: "tag"},
+      {regex: /[^{}:,;]/, token: "string"},
     ],
 
     generator: [
       {regex: /}/, token: "bracket", dedent: true, pop: true},
+      {regex: /{/, token: "bracket", indent: true, push: "generator"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      {regex: /[^\s}]/, token: "string"},
+      {regex: /.:/, token: "tag"},
+      {regex: /[^{}:,;]/, token: "variable"},
     ],
 
     // The meta property contains global information about the mode. It
@@ -93,20 +99,19 @@ CodeMirror.defineSimpleMode("tm++", {
 });
 
 // Replace the textarea with CodeMirror
-var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
     mode: 'tm++',
-    // theme: 'monokai',
     theme: 'yonce',
     keyMap: "sublime",
+    extraKeys: {"Alt-F": "findPersistent"},
+    // lineWrapping: true,
     lineNumbers: true,
+    gutters: ["CodeMirror-linenumbers", "breakpoints"],
+    scrollbarStyle: "simple",
     showMatchesOnScrollbar: true,
     autoCloseBrackets: true, // addon/edit/closebrackets.js
     styleActiveLine: true, // addon/selection/active-line.js
     matchBrackets: true, // edit/matchbrackets.js
-    extraKeys: {"Alt-F": "findPersistent"},
-    // lineWrapping: true,
-    scrollbarStyle: "simple",
-    gutters: ["CodeMirror-linenumbers", "breakpoints"],
 });
 
 // Replace tab with spaces
@@ -117,14 +122,49 @@ editor.setOption("extraKeys", {
   }
 });
 
+// Add marker when gutter is clicked
 editor.on("gutterClick", function(cm, n) {
   var info = cm.lineInfo(n);
   cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
 });
 
+// Function to generate marker
 function makeMarker() {
   var marker = document.createElement("div");
   marker.style.color = "#822";
   marker.innerHTML = "●";
   return marker;
+}
+
+// Add shortcut for save function
+CodeMirror.commands.save = saveCode
+
+// Save code
+function saveCode() {
+  const fileName = "myfile.txt";
+  const fileText = editor.getValue();
+  const file = new Blob([fileText], {
+    type: "text/plain;charset=utf-8"
+  });
+
+  // Create a link and set the URL using `createObjectURL`
+  const link = document.createElement('a');
+  link.style.display = 'none';
+  link.href = URL.createObjectURL(file);
+  link.download = fileName;
+
+  // Link must be added to the DOM so it can be clicked
+  document.body.appendChild(link);
+  link.click();
+
+  // To make this work on Firefox we need to wait
+  // a little while before removing it.
+  setTimeout(() => {
+      URL.revokeObjectURL(link.href);
+      link.parentNode.removeChild(link);
+  }, 0);
+}
+
+function openCode() {
+  file = showOpenFilePicker();
 }

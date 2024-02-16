@@ -51,25 +51,26 @@
 
   <!-- Top Toolbar -->
   <div class="toolbar">
+    <a href="../"><img id="icon" src="icon.png"></a>
     <div class="dropdown">
       <button>File</button>
       <div class="dropdown-content">
         <button onclick="location.reload()">New</button>
-        <button onclick="showOpenFilePicker()">Open</button>
-        <button onclick="dispError('Not Implemented Yet')">Save</button>
+        <button onclick="openCode()">Open<div id="shortcut">Ctrl+O</div></button>
+        <button onclick="saveCode()">Save<div id="shortcut">Ctrl+S</div></button>
       </div>
     </div>
     <div class="dropdown">
       <button>Edit</button>
       <div class="dropdown-content">
-        <button onclick="dispError('Not Implemented Yet')">Find</button>
-        <button onclick="dispError('Not Implemented Yet')">Replace</button>
+        <button onclick="editor.execCommand('find')">Find<div id="shortcut">Ctrl+F</div></button>
+        <button onclick="editor.execCommand('replace')">Replace<div id="shortcut">Ctrl+H</div></button>
       </div>
     </div>
     <div class="dropdown">
       <button>Selection</button>
       <div class="dropdown-content">
-        <button onclick="dispError('Not Implemented Yet')">Select All</button>
+        <button onclick="editor.execCommand('selectAll')">Select All<div id="shortcut">Ctrl+A</div></button>
       </div>
     </div>
     <div class="dropdown">
@@ -79,11 +80,22 @@
         <button onclick="dispError('Not Implemented Yet')">Change View</button>
       </div>
     </div>
-    <button onclick="parse()">Run</button>
-    <button onclick="updateStep();draw();">Step</button>
-    <div id="coords">0, 0</div>
-  </div>
-
+    <div class="dropdown">
+      <button>Run</button>
+      <div class="dropdown-content">
+        <button onclick="parse();run();draw();">Reset and Run</button>
+        <button onclick="step();draw();">Step</button>
+        <button onclick="parse()">Restart Machine</button>
+      </div>
+    </div>
+    <!-- <div id="coords">0, 0</div> -->
+    <!-- <div id="state">start</div> -->
+    <!-- <div id="button-bar">    
+      <button onclick="dispError('Not Implemented Yet')">▶️</button>
+      <button onclick="dispError('Not Implemented Yet')">⤼</button>
+      <button onclick="dispError('Not Implemented Yet')">⟲</button>
+      <button onclick="dispError('Not Implemented Yet')">🛑</button></div>
+    </div> -->
   <div id="main-container">
 
     <!-- Code Editor -->
@@ -106,12 +118,17 @@ D 1 R _ 0 +
 L 1 D _ 1 -</textarea>
     </div>
 
-    <span class="resize" style="border-left-width: 2px; border-right-width: 2px; width: 2px; margin: 0px;"></span>
+    <!-- <span class="resize" style="border-left-width: 2px; border-right-width: 2px; width: 2px; margin: 0px;"></span> -->
 
     <!-- Tape Display  -->
-    <!-- <div class="container" id="canvas-container"> -->
+    <!-- <div id="canvas-container"> -->
     <canvas id="canvas" width="1000" height="1000"></canvas>
     <!-- </div> -->
+
+    <div class="footer">
+      <div id="coords">0, 0</div>
+      <div id="state">start</div>
+    </div>
 
   </div>
 

@@ -2,16 +2,17 @@
  * Code for the TuringMachine++ itself
  */
 
-// Extended Langton's Ant
-// {?:d;U,R,D,L} {?:r;_,1:9} {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} {?:r;1:9,_} {?:d;0,1,0,1} {?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
 /*
 #--color auto 8 
-#--timeout 0
+#--timeout 1000000
 #--grid true
 #--view x y
 #--start U
 
-# Langton's Ant
+##--color auto 12
+# 1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1
+
+# Extended Langton's Ant
 {?:d;U,R,D,L} \
 {?:r;_,1:9} \
 {?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} \
@@ -21,19 +22,144 @@
 */
 
 /*
-#--color auto 12
-#--timeout 1000000
+{
+  &: d; 
+  @: U,R,D,L
+} {
+  &: r; 
+  @: _,1:12;
+} {
+  &: r; 
+  %: {&:d; L,U,R,D},{&:d; R,D,L,U};
+  @: {?:ant; 1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1}
+} {
+  &: r;
+  @: 1:12,_
+} {
+  &: d;
+  @: 0,1,0,1
+} {
+  &: r;
+  %: {&:d; -,-,+,+},{&:d; +,+,-,-};
+  @: {!:ant}
+}
+*/
+
+
+
+/*
+#--timeout 0
 #--grid true
 #--view x y
-#--start U
+#--start AR
+#--tape print 1011\n1101
 
-# Langton's Ant
-{?:d;U,R,D,L} \
-{?:r;_,1:12} \
-{?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1} \
-{?:r;1:12,_} \
-{?:d;0,1,0,1} \
-{?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1}
+# Move to the far right
+AR {?:0;:2} AR {?:0;:2} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+A_0 0 A00 0 1 +
+A_0 1 A01 1 1 +
+A_1 0 A01 0 1 +
+A_1 1 A10 1 1 +
+
+# Add second value
+A00 0 A00 0 1 +
+A00 1 A01 1 1 +
+A01 0 A01 0 1 +
+A01 1 A10 1 1 +
+A10 0 A10 0 1 +
+A10 1 A11 1 1 +
+
+# A_{?:0;:2} {?:0;:2} A{?:0;:2}{?:0;:2} {?:0;:2}
+
+# a b cs
+# 0 0 00
+# 0 1 01
+# 0 2 02
+# 1 0 01
+# 1 1 02
+# 1 2 10
+# 2 0 02
+# 2 1 10
+# 2 2 11
+# a {0} c{012}
+# a {1} c{120}
+# a {2} c{201}
+# a {:3} c{@:0,1,2;{:3}:{3:6}}
+
+# Write sum
+A{?:c;:2}{?:s;:2} _ A{?:c;:2}_ {?:s;:2} 0 - 1 -
+
+# Swap registers
+A{?:c;:2}_ {?:x;:2} A_{?:c;:2} {?:x;:2} 1 -
+
+# Move to write carry bit
+A{?:c;:2}_ _ A{?:c;:2} _ 1 +
+
+# Write carry bit
+A{?:c;:2} _ A {?:c;:2}
+*/
+
+
+
+/*
+#--timeout 0
+#--grid true
+#--view x y 0
+#--start AR
+
+# Number 1
+#--tape set 0 0 0 1
+#--tape set 1 0 0 0
+#--tape set 2 0 0 1
+#--tape set 3 0 0 1
+
+# Number 2
+#--tape set 0 0 1 1
+#--tape set 1 0 1 1
+#--tape set 2 0 1 0
+#--tape set 3 0 1 1
+
+# Move to the far right
+AR {?:0;:2} AR {?:0;:2} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+A_0 0 A00 0 2 +
+A_0 1 A01 1 2 +
+A_1 0 A01 0 2 +
+A_1 1 A10 1 2 +
+
+# Add second value
+A00 0 A00 0 2 - 1 +
+A00 1 A01 1 2 - 1 +
+A01 0 A01 0 2 - 1 +
+A01 1 A10 1 2 - 1 +
+A10 0 A10 0 2 - 1 +
+A10 1 A11 1 2 - 1 +
+
+# Write sum
+A{?:c;:2}{?:s;:2} _ A_{?:c;:2} {?:s;:2} 0 - 1 -
+
+# Move to write carry bit
+A_{?:c;:2} _ A{?:c;:2} _ 1 +
+
+# Write carry bit
+A{?:c;:2} _ A {?:c;:2}
+*/
+
+
+
+/*
+#--timeout 0
+#--view x y
+#--start R
+#--tape print 1011
+
+# Do mathz
+R {?:0;:2,_} R {?:0;:2,0} 0 +
 */
 
 // TuringMachine++ varibles
@@ -78,36 +204,37 @@ function parse() {
   
   parseText(text);
 
-  run(timeout);
-
 } 
 
 
 
 /**
  * Run the TuringMachine++ for n iterations.
- * 
- * @param {int} n The number of cycles to run the TuringMachine++.
  */
-function run(n) {
+function run() {
     
   // Update tape
-  for (let i = 0; i < n; i++) {
+  for (let i = 0; i < timeout; i++) {
 
-    updateStep();
+    step();
 
     // Delta index for state, symbol, head changes
     var stateSymbol = [state, tape[head]];
 
     if (breakpoints.includes(stateSymbol.toString())) {
-      i = 1000000000000000000;
+      break;
     }
   }
 
   draw();
 }
 
-function updateStep() {
+
+
+/**
+ * Progress the machine by a single action
+ */
+function step() {
   // Check that current tape position is valid
   if (!(head in tape)) {
     tape[head] = "_"
@@ -126,6 +253,9 @@ function updateStep() {
   }
 
   [state, tape[head], ...moves] = deltas[stateSymbol]
+
+  // Update state display
+  document.getElementById("state").innerHTML = state
 
   // Remove _ from the tape
   if (tape[head] == "_") {

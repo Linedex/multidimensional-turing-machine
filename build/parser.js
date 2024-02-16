@@ -37,7 +37,7 @@ function parseText(text) {
   viewCoords = [];
   breakpoints = [];
 
-  nDims = 1;
+  nDims = 2;
 
   text = text.replace(/\\\n/g,"");
 
@@ -60,8 +60,19 @@ function parseText(text) {
   // Set the head position to all zeros
   head = Array.from({ length: nDims }, x => 0);
 
+  // Reset tape bounds
   tapeBoundsMin = [...head];
   tapeBoundsMax = [...head];
+
+  // Update tape bounds if the tape already has symbols on it
+  for (let cell in tape) {
+    // Parse cell into a Number Array
+    cell = cell.split(',').map(x=>parseInt(x));
+    for (let i = 0; i < nDims; i++) {
+      tapeBoundsMin[i] = Math.min(cell[i],tapeBoundsMin[i])
+      tapeBoundsMax[i] = Math.max(cell[i],tapeBoundsMax[i])
+    }
+  }
 }
 
 
@@ -132,8 +143,7 @@ function parseConfig(line) {
           case "y": case "Y": yIndex = i; break;
           case "z": case "Z": zIndex = i; break;
           // Save dimension coord used for the view
-          default:
-            viewCoords[i] = parseInt(args[i]);
+          default: viewCoords[i] = parseInt(args[i]);
         }
       }
       break;
@@ -144,7 +154,7 @@ function parseConfig(line) {
       [subkeyword, args] = args.trim().split(/(?<=^\S*)\s+/);
       args = args.trim().split(/\s+/);
 
-      newSymbol = args.slice(args.length - 1);
+      let newSymbol = args.slice(args.length - 1);
 
       switch (subkeyword) {
 
@@ -169,6 +179,21 @@ function parseConfig(line) {
           }
 
           fill(0);
+          break;
+
+        // TODO Add non 2D support
+        case "print":
+          let lines = args[0].split("\\n");
+          // Update bounds
+          // tapeBoundsMax[1] = lines.length; //y
+          // tapeBoundsMax[0] = Math.max(lines.map((line)=>{return line.length})); //x
+          // Update tape
+          for (let y = 0; y < lines.length; y++) {
+            for (let x = 0; x < lines[y].length; x++) {
+              cell = [x,y];
+              tape[cell] = lines[y][x];
+            }
+          }
           break;
 
         case "set":

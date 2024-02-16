@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function handleWheel(event) {
     const zoomFactor = 0.1;
     const delta = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
-    const rect = canvas.getBoundingClientRect()
+    const rect = canvas.getBoundingClientRect();
     const xPos = event.clientX - rect.left;
     const yPos = event.clientY - rect.top;
     // Focus zoom on the mouse
@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", function () {
   canvas.addEventListener("mousemove", handleMousemove);
 
   parse(); // Initial parse
-
+  run();
   draw(); // Initial draw
 });
 
@@ -160,9 +160,11 @@ function draw() {
   }
 
   // Draw head
-  const x = head[xIndex];
-  const y = head[yIndex];
-  ctx.lineWidth = 2 * Math.min(scale, 1 / scale); // Prevent lineweight from scaling unless zoomed far out 
-  ctx.strokeStyle = "red";
-  ctx.strokeRect(x, y, 1, 1);
+  if (viewCoords.every((x,i)=>x==head[i])) {
+    const x = head[xIndex];
+    const y = head[yIndex];
+    ctx.lineWidth = 2 * Math.min(scale, 1 / scale); // Prevent lineweight from scaling unless zoomed far out 
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(x, y, 1, 1);
+  }
 }
