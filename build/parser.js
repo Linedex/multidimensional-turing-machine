@@ -54,7 +54,7 @@ function parseText(text) {
   // Iterate over all non comment lines
   for (match of text.matchAll(/^[^\S\n]*(?<line>[^#\s\n]+[^#\n]*[^#\s\n]+)/gm)) {
     line = match.groups['line'];
-    parseGenerators(line);
+    parseGenerator(line);
   }
 
   // Set the head position to all zeros
@@ -238,7 +238,7 @@ function parseConfig(line) {
  * {[<arg-name>:<arg-value>;] ... <generator-entry>}
  *    Adds a argument to the generator that influences behavior.
  * 
- * {?:<track>; <generator-entry>}
+ * {&:<track>; <generator-entry>}
  *    Designate the track of the generator.
  *    Generators with the same track number are run in parallel
  *    Generators with different track numbers are run for each value of the others
@@ -248,39 +248,39 @@ function parseConfig(line) {
  *        a 1 b 4 c
  *        a 2 b 3 c
  *        a 2 b 4 c
- *      a {?:track0; 1,2} b {?:track1; 3,4} c
+ *      a {&:track0; 1,2} b {&:track1; 3,4} c
  *        a 1 b 3 c
  *        a 1 b 4 c
  *        a 2 b 3 c
  *        a 2 b 4 c
- *      a {?:track0; 1,2} b {?:track0; 3,4} c
+ *      a {&:track0; 1,2} b {&:track0; 3,4} c
  *        a 1 b 3 c
  *        a 2 b 4 c
  * 
- * {@:<symbols>; <generator-entry>}
+ * {%:<symbols>; <generator-entry>}
  *    Designate the symbols of the generator.
  *    Symbols are sperated by a comma.
  *    The symbol to use is calculated by the generator value mod the number of symbols
  *    Examples:
- *      {@:a,b,c; 0,2,1}  => {a, c, b}
- *      {@:a,b,c; 1,4,-2} => {b, b, b}
+ *      {%:a,b,c; 0,2,1}  => {a, c, b}
+ *      {%:a,b,c; 1,4,-2} => {b, b, b}
  * 
  * [track=<track>;] [symbols=<symbols>;] (<value> | [<start=0>] : [<stop=0>] [: <step=1>]) [, ...]
  *    The full syntax of a generator.
  *    
  * @param {string} line A single line containing a generator 
  */
-function parseGenerators(line) {
+function parseGenerator(line) {
 
   // Extract first non embedded brackets
   // generator = line.match(/\{[^\{\}]*?\}/)
 
   // The first non embedded generator
-  var generator = line.match(/{(?:\?:(?<track>[^{};]*);)?(?:@:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}/);
+  var generator = line.match(/{(?:&:(?<track>[^{};]*);)?(?:%:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}/);
 
   // No generator is found, skip
   if (generator == null) {
-    parseMachine(line)
+    parseDelta(line)
     return
   }
 
@@ -288,7 +288,7 @@ function parseGenerators(line) {
   const track = generator.groups.track;
 
   // regular expression to extarct all generators on the same track
-  const reg = RegExp('{\\?:' + track + ';(?:@:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}')
+  const reg = RegExp('{\\&:' + track + ';(?:%:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}')
 
   // The line split across all generators on the same track
   var segs = [line]
@@ -298,7 +298,6 @@ function parseGenerators(line) {
 
   // Extract all generators with the same track
   do {
-    parseGenerators
     // Extract last segment
     const seg = segs.pop()
 
@@ -387,7 +386,7 @@ function parseGenerators(line) {
     }
 
     // Parse the resulting line incase it also contains a generator
-    parseGenerators(newLine);
+    parseGenerator(newLine);
 
   }
 }
@@ -404,7 +403,7 @@ function parseGenerators(line) {
  * 
  * @param {string} text 
  */
-function parseMachine(line) {
+function parseDelta(line) {
   const args = line.split(/\s+/);
 
   // Calculate the number of dimensions as the largest dimension index value plus one

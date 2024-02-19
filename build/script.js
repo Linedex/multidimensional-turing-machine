@@ -4,7 +4,7 @@
 
 /*
 #--color auto 8 
-#--timeout 1000000
+#--timeout 100000
 #--grid true
 #--view x y
 #--start U
@@ -12,13 +12,48 @@
 ##--color auto 12
 # 1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1
 
+# 500
+# 1,1,1,0,1,1,1
+
+# 150
+# 0,1,1,1,0,0,1
+
 # Extended Langton's Ant
-{?:d;U,R,D,L} \
-{?:r;_,1:9} \
-{?:r;@:{?:d;L,U,R,D},{?:d;R,D,L,U};0,1,1,1,1,1,0,0,1} \
-{?:r;1:9,_} \
-{?:d;0,1,0,1} \
-{?:r;@:{?:d;-,-,+,+},{?:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
+{&:d;U,R,D,L} \
+{&:r;_,1:9} \
+{&:r;%:{&:d;L,U,R,D},{&:d;R,D,L,U};0,1,1,1,1,1,0,0,1} \
+{&:r;1:9,_} \
+{&:d;0,1,0,1} \
+{&:r;%:{&:d;-,-,+,+},{&:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
+*/
+
+/*
+#--timeout 31
+#--grid true
+#--view x y
+#--start R
+
+# 1053234
+# R {?:0;:6} R {?:0;1,2,3,4,5,0} 0 +
+# R _ L 0 
+# L {?:0;:6} L {?:0;4,5,0,1,2,3} 0 -
+# L _ R 0 
+
+# R {?:0;I,L,D,E,X,N} R {?:0;L,D,E,X,N,I} 0 +
+# R _ L I
+# L {?:0;I,L,D,E,X,N} L {?:0;X,N,I,L,D,E} 0 -
+# L _ R I
+
+#0254341
+# R {?:0;:6} R {?:0;1,2,3,4,5,0} 0 +
+# R _ L 0
+# L {?:0;:6} L {?:0;1,5,4,0,2,3} 0 -
+# L _ R 5
+
+R {?:0;L,X,I,D,E,N} R {?:0;X,I,D,E,N,L} 0 +
+R _ L L 
+L {?:0;L,X,I,D,E,N} L {?:0;X,N,E,L,I,D} 0 -
+L _ R N
 */
 
 /*
@@ -55,7 +90,7 @@
 #--tape print 1011\n1101
 
 # Move to the far right
-AR {?:0;:2} AR {?:0;:2} 0 +
+AR {&:0;:2} AR {&:0;:2} 0 +
 AR _ A_0 _ 0 -
 
 # Add first value to carry 
@@ -72,7 +107,7 @@ A01 1 A10 1 1 +
 A10 0 A10 0 1 +
 A10 1 A11 1 1 +
 
-# A_{?:0;:2} {?:0;:2} A{?:0;:2}{?:0;:2} {?:0;:2}
+# A_{&:0;:2} {&:0;:2} A{&:0;:2}{&:0;:2} {&:0;:2}
 
 # a b cs
 # 0 0 00
@@ -90,16 +125,16 @@ A10 1 A11 1 1 +
 # a {:3} c{@:0,1,2;{:3}:{3:6}}
 
 # Write sum
-A{?:c;:2}{?:s;:2} _ A{?:c;:2}_ {?:s;:2} 0 - 1 -
+A{&:c;:2}{&:s;:2} _ A{&:c;:2}_ {&:s;:2} 0 - 1 -
 
 # Swap registers
-A{?:c;:2}_ {?:x;:2} A_{?:c;:2} {?:x;:2} 1 -
+A{&:c;:2}_ {&:x;:2} A_{&:c;:2} {&:x;:2} 1 -
 
 # Move to write carry bit
-A{?:c;:2}_ _ A{?:c;:2} _ 1 +
+A{&:c;:2}_ _ A{&:c;:2} _ 1 +
 
 # Write carry bit
-A{?:c;:2} _ A {?:c;:2}
+A{&:c;:2} _ A {&:c;:2}
 */
 
 
@@ -197,7 +232,7 @@ function dispError(text) {
 /**
  * Loads the text from the editor and passes it to be parsed
  */
-function parse() {
+function parseMachine() {
   
   // Get code from editor
   const text = editor.getValue();
@@ -211,7 +246,7 @@ function parse() {
 /**
  * Run the TuringMachine++ for n iterations.
  */
-function run() {
+function runMachine() {
     
   // Update tape
   for (let i = 0; i < timeout; i++) {

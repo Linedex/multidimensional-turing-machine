@@ -64,9 +64,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const rect = canvas.getBoundingClientRect()
     const xPos = event.clientX - rect.left;
     const yPos = event.clientY - rect.top;
-    const x = (xPos - panX) / scale;
-    const y = (yPos - panY) / scale;
-    document.getElementById("coords").innerHTML = scale + ', ' + x + ', ' + y;
+    const x = Math.floor((xPos - panX) / scale);
+    const y = Math.floor((yPos - panY) / scale);
+    // const s = scale.toExponential(2)
+    const s = scale.toPrecision(3);
+    document.getElementById("coords").innerHTML = s + 'x (' + x + ', ' + y + ')';
   }
 
   // Canvas does not have a native resize listener 
@@ -76,8 +78,8 @@ document.addEventListener("DOMContentLoaded", function () {
   canvas.addEventListener("wheel", handleWheel);
   canvas.addEventListener("mousemove", handleMousemove);
 
-  parse(); // Initial parse
-  run();
+  parseMachine(); // Initial parse
+  runMachine();
   draw(); // Initial draw
 });
 
