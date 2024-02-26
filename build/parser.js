@@ -30,7 +30,7 @@ function parseText(text) {
 
   xIndex = 0;
   yIndex = 1;
-  zIndex = 2;
+  zIndex = NaN;
 
   timeout = 100;
   colors = {};
@@ -39,11 +39,8 @@ function parseText(text) {
 
   nDims = 2;
 
+  // Remove newlines preceded by a backslash
   text = text.replace(/\\\n/g,"");
-
-  // text = text.replace(/{\\\n/,"");
-
-  // (?<keep>{[^{}\n]*)\n
 
   // Iterate over all configs
   for (match of text.matchAll(/^#--(?<line>.*)/gm)) {
@@ -58,7 +55,7 @@ function parseText(text) {
   }
 
   // Set the head position to all zeros
-  head = Array.from({ length: nDims }, x => 0);
+  head = Array.from({length: nDims}, x => 0);
 
   // Reset tape bounds
   tapeBoundsMin = [...head];
@@ -81,8 +78,7 @@ function parseText(text) {
  * Comments at the top of the file used to load IDE settings.
  * Does not impact how the TM++ code functions.
  * 
- * [WIP]
- * #viewport <width-dim-num> [height-dim-index] [layer-dim-index] [[<fixed-dim-index>=<value; default=0>] ...]
+ * #view <width-dim-num> [height-dim-index] [layer-dim-index] [[<fixed-dim-index>=<value; default=0>] ...]
  *    Used to view 1D, 2D, 3D views
  * 
  * #grid (true|false)
@@ -141,7 +137,7 @@ function parseConfig(line) {
           // Save dimension index used for iteration when rendering the view
           case "x": case "X": xIndex = i; break;
           case "y": case "Y": yIndex = i; break;
-          case "z": case "Z": zIndex = i; break;
+          case "z": case "Z": zIndex = i; viewCoords[i] = 0; break;
           // Save dimension coord used for the view
           default: viewCoords[i] = parseInt(args[i]);
         }

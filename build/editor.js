@@ -22,29 +22,30 @@ CodeMirror.defineSimpleMode("tm++", {
 
       // Config comment
       {regex: /\s*(#--)(\w+)/, token: ["comment", "keyword"], sol: true},
-      // {regex: /\s*(?:fill|set|to|with)/, token: "keyword"},
+      {regex: /\s*(?:fill|set|auto)/, token: "keyword"},
       {regex: /#.*/, token: "comment"},
 
       // Full Line
-      {regex: /\s*(?=\S)/, token: "keyword", next: "state", sol: true},
+      {regex: /\s*(?=\S)/, token: "keyword", next: "oldState", sol: true},
 
       {regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string"},
       {regex: /true|false|null|undefined/, token: "atom"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},      
       
+      // Generic generator
       {regex: /{/, token: "bracket", push: "generator"},
 
       {regex: /[\[\(]/, indent: true},
       {regex: /[\]\)]/, dedent: true},
     ],
 
-    state: [
-      {regex: /\s+/, next: "symbol"},
+    oldState: [
+      {regex: /\s+/, next: "oldSymbol"},
       {regex: /{/, token: "bracket", indent: true, push: "stateGenerator"},
       {regex: /[^\s{]+/, token: "variable-2"},
     ],
 
-    symbol: [
+    oldSymbol: [
       {regex: /\s+/, next: "newState"},
       {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
       {regex: /[^\s{]+/, token: "string"},
@@ -57,17 +58,16 @@ CodeMirror.defineSimpleMode("tm++", {
     ],
 
     newSymbol: [
-      {regex: /\s+/, next: "start"},
+      {regex: /\s+|(?:\b(?=\n))/, next: "start"},
       {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
       {regex: /[^\s{]+/, token: "string"},
     ],
 
     stateGenerator: [
-      // {regex: //, token: "bracket", dedent: true, pop: true},
       {regex: /}/, token: "bracket", dedent: true, pop: true},
       {regex: /{/, token: "bracket", indent: true, push: "stateGenerator"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      {regex: /.:/, token: "tag"},
+      {regex: /[^;\s]:/, token: "tag"},
       {regex: /[^{}:,;]/, token: "variable-2"},
     ],
 
@@ -76,7 +76,7 @@ CodeMirror.defineSimpleMode("tm++", {
       {regex: /{/, token: "bracket", indent: true, push: "symbolGenerator"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
       // {regex: /\w+(?![^};]*;[^};]*})/, token: "string"}, // characters representing symbols
-      {regex: /.:/, token: "tag"},
+      {regex: /[^;\s]:/, token: "tag"},
       {regex: /[^{}:,;]/, token: "string"},
     ],
 
@@ -84,7 +84,7 @@ CodeMirror.defineSimpleMode("tm++", {
       {regex: /}/, token: "bracket", dedent: true, pop: true},
       {regex: /{/, token: "bracket", indent: true, push: "generator"},
       {regex: /0x[a-f\d]+|[-+]?(?:\.\d+|\d+\.?\d*)(?:e[-+]?\d+)?/i, token: "number"},
-      {regex: /.:/, token: "tag"},
+      {regex: /[^;\s]:/, token: "tag"},
       {regex: /[^{}:,;]/, token: "variable"},
     ],
 
@@ -94,7 +94,7 @@ CodeMirror.defineSimpleMode("tm++", {
     // specific to simple modes.
     meta: {
       dontIndentStates: ["comment"],
-      lineComment: "#"
+      lineComment: "#",
     }
 });
 

@@ -11,21 +11,23 @@ let scale = 100;
 
 
 // Load a 2D slice of the TM++ onto the canvas
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
 
   canvas = document.getElementById("canvas");
   ctx = canvas.getContext("2d");
 
   function handleWheel(event) {
-    const zoomFactor = 0.1;
-    const delta = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
-    const rect = canvas.getBoundingClientRect();
-    const xPos = event.clientX - rect.left;
-    const yPos = event.clientY - rect.top;
-    // Focus zoom on the mouse
-    panX = (panX - xPos) * delta + xPos;
-    panY = (panY - yPos) * delta + yPos;
-    scale *= delta;
+    if (event.shiftKey) {
+      // Scroll through Z
+      if (zIndex >= 0) {
+        viewCoords[zIndex] -= Math.sign(event.deltaY);
+      }
+    } else {
+      // Zoom with focal point on the mouse
+      const zoomFactor = 0.1;
+      const delta = event.deltaY > 0 ? 1 - zoomFactor : 1 + zoomFactor;
+      changeZoom(delta, event.clientX, event.clientY);
+    }
     updateCoords(event);
     draw();
   }
@@ -40,16 +42,9 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   
   function handleAuxclick(event) {
-    // Refocus to tape bounds
     if (event.button === 1) {
-      const rect = canvas.getBoundingClientRect()
-      const xMin = tapeBoundsMin[xIndex] - 1;
-      const yMin = tapeBoundsMin[yIndex] - 1;
-      const xMax = tapeBoundsMax[xIndex] + 2; //FIXME this should be a 1
-      const yMax = tapeBoundsMax[yIndex] + 2;
-      scale = Math.min(rect.width / (xMax - xMin), rect.height / (yMax - yMin))
-      panX = (rect.width - (xMin + xMax) * scale) / 2;
-      panY = (rect.height - (yMin + yMax) * scale) / 2;
+      // Refocus to tape bounds
+      autoFocusTape();
       draw();
     }
   }
@@ -68,7 +63,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const y = Math.floor((yPos - panY) / scale);
     // const s = scale.toExponential(2)
     const s = scale.toPrecision(3);
-    document.getElementById("coords").innerHTML = s + 'x (' + x + ', ' + y + ')';
+    coords = [...viewCoords] 
+    coords[xIndex] = x;
+    coords[yIndex] = y;
+    document.getElementById("coords").innerHTML = s + 'x (' + coords + ')';
+    // document.getElementById("coords").innerHTML = s + 'x (' + x + ', ' + y + ')';
   }
 
   // Canvas does not have a native resize listener 
@@ -80,6 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   parseMachine(); // Initial parse
   runMachine();
+  autoFocusTape();
   draw(); // Initial draw
 });
 
@@ -161,12 +161,48 @@ function draw() {
     }
   }
 
-  // Draw head
+  // Check that all non x and y coords are identical in both the head and viewCoords
   if (viewCoords.every((x,i)=>x==head[i])) {
+    // Draw head
     const x = head[xIndex];
     const y = head[yIndex];
     ctx.lineWidth = 2 * Math.min(scale, 1 / scale); // Prevent lineweight from scaling unless zoomed far out 
     ctx.strokeStyle = "red";
     ctx.strokeRect(x, y, 1, 1);
   }
+}
+
+
+
+/**
+ * Automatically focus on the tape
+ */
+function autoFocusTape() {
+  const rect = canvas.getBoundingClientRect()
+  const xMin = tapeBoundsMin[xIndex] - 1;
+  const yMin = tapeBoundsMin[yIndex] - 1;
+  const xMax = tapeBoundsMax[xIndex] + 2; // FIXME this should be a 1
+  const yMax = tapeBoundsMax[yIndex] + 2;
+  scale = Math.min(rect.width / (xMax - xMin), rect.height / (yMax - yMin))
+  panX = (rect.width - (xMin + xMax) * scale) / 2;
+  panY = (rect.height - (yMin + yMax) * scale) / 2;
+}
+
+
+
+/**
+ * Change the zoom of the canvas
+ * 
+ * @param {Number} delta The factor in which the scale is multiplied by
+ * @param {Number} x The x coord of the focal point
+ * @param {Number} y The y coord of the focal point 
+ */
+function changeZoom(delta,x,y) {
+  const rect = canvas.getBoundingClientRect();
+  const xPos = x - rect.left;
+  const yPos = y - rect.top;
+  // Focus zoom on focal point
+  panX = (panX - xPos) * delta + xPos;
+  panY = (panY - yPos) * delta + yPos;
+  scale *= delta;
 }

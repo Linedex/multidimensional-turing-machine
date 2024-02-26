@@ -1,0 +1,439 @@
+
+#--color auto 8 
+#--timeout 100000
+#--grid true
+#--view x y
+#--start U
+
+##--color auto 12
+# 1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1
+
+# 500
+# 1,1,1,0,1,1,1
+
+# 150
+# 0,1,1,1,0,0,1
+
+# Extended Langton's Ant
+{&:d;U,R,D,L} \
+{&:r;_,1:9} \
+{&:r;%:{&:d;L,U,R,D},{&:d;R,D,L,U};0,1,1,1,1,1,0,0,1} \
+{&:r;1:9,_} \
+{&:d;0,1,0,1} \
+{&:r;%:{&:d;-,-,+,+},{&:d;+,+,-,-};0,1,1,1,1,1,0,0,1}
+
+################################################################################
+# Linedex Logo
+
+#--timeout 31
+#--grid true
+#--view x y
+#--start R
+
+# 1053234
+# R {&:0;:6} R {&:0;1,2,3,4,5,0} 0 +
+# R _ L 0 
+# L {&:0;:6} L {&:0;4,5,0,1,2,3} 0 -
+# L _ R 0 
+
+# R {&:0;I,L,D,E,X,N} R {&:0;L,D,E,X,N,I} 0 +
+# R _ L I
+# L {&:0;I,L,D,E,X,N} L {&:0;X,N,I,L,D,E} 0 -
+# L _ R I
+
+#0254341
+# R {&:0;:6} R {&:0;1,2,3,4,5,0} 0 +
+# R _ L 0
+# L {&:0;:6} L {&:0;1,5,4,0,2,3} 0 -
+# L _ R 5
+
+R {&:0;L,X,I,D,E,N} R {&:0;X,I,D,E,N,L} 0 +
+R _ L L 
+L {&:0;L,X,I,D,E,N} L {&:0;X,N,E,L,I,D} 0 -
+L _ R N
+
+################################################################################
+
+{
+  &: d; 
+  @: U,R,D,L
+} {
+  &: r; 
+  @: _,1:12;
+} {
+  &: r; 
+  %: {&:d; L,U,R,D},{&:d; R,D,L,U};
+  @: {?:ant; 1,1,0,1,1,1,0,0,0,0,0,1,1,0,1,1}
+} {
+  &: r;
+  @: 1:12,_
+} {
+  &: d;
+  @: 0,1,0,1
+} {
+  &: r;
+  %: {&:d; -,-,+,+},{&:d; +,+,-,-};
+  @: {!:ant}
+}
+
+################################################################################
+# 2D Binary Addition
+
+#--timeout 0
+#--grid true
+#--view x y
+#--start AR
+#--tape print 1011\n1101
+
+# Move to the far right
+AR {&:0;:2} AR {&:0;:2} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+# A_0 0 A00 0 1 +
+# A_0 1 A01 1 1 +
+# A_1 0 A01 0 1 +
+# A_1 1 A10 1 1 +
+
+# Add second value
+# A00 0 A00 0 1 +
+# A00 1 A01 1 1 +
+# A01 0 A01 0 1 +
+# A01 1 A10 1 1 +
+# A10 0 A10 0 1 +
+# A10 1 A11 1 1 +
+
+# Add first value to carry 
+A_{&:a;:2} {&:b;:3} \
+A{&:b;%:0,0,0,1;{&:a;0:2}:{&:a;3:5}}{&:b;%:0,1,2;{&:a;0:2}:{&:a;3:5}} \
+{&:b;:3} 1 +
+
+# Add second value
+A{&:a;0,0,0,1}{&:a;:3,0} {&:b;:3} \
+A{&:b;%:0,0,0,1,1,1;{&:a;0:4}:{&:a;3:7}}{&:b;%:0,1,2;{&:a;0:4}:{&:a;3:7}} \
+{&:b;:3} 1 +
+
+# Carry
+# A_1 {&:b;:3} \
+# A{&:b;%:0,0,0,1,1;1:4}{&:b;%:0,1,2;1:4} \
+# {&:b;:3} 1 +
+
+# A_{&:a;:3} {&:b;:3} \
+# A{&:b;%:0,0,0,1,1;{&:a;0:3}:{&:a;3:6}}{&:b;%:0,1,2;{&:a;0:3}:{&:a;3:6}} \
+# {&:b;:3} 1 +
+
+#  a b cs
+# 00 0 00
+# 00 1 01
+# 00 2 02
+# 01 0 01
+# 01 1 02
+# 01 2 10
+# 02 0 02
+# 02 1 10
+# 02 2 11
+# 10 0 10
+# 10 1 11
+# 10 2 12
+
+# a b cs
+# 0 0 00
+# 0 1 01
+# 0 2 02
+# 1 0 01
+# 1 1 02
+# 1 2 10
+# 2 0 02
+# 2 1 10
+# 2 2 11
+# a {0} c{012}
+# a {1} c{120}
+# a {2} c{201}
+# a {:3} c{@:0,1,2;{:3}:{3:6}}
+
+# Write sum, move up and left
+A{&:c;:2}{&:s;:2} _ A_{&:c;:2}U {&:s;:2} 0 - 1 -
+
+# Move up again
+A_{&:c;:2}U {&:x;:2} A_{&:c;:2} {&:x;:2} 1 -
+
+# Move to write carry bit
+A_{&:c;:2}U _ A{&:c;:2} _ 1 +
+
+# Write carry bit
+A{&:c;:2} _ A {&:c;:2}
+
+################################################################################
+# 3D Binary Addition
+
+#--timeout 0
+#--grid true
+#--view x y 0
+#--start AR
+
+# Number 1
+#--tape set 0 0 0 1
+#--tape set 1 0 0 0
+#--tape set 2 0 0 1
+#--tape set 3 0 0 1
+
+# Number 2
+#--tape set 0 0 1 1
+#--tape set 1 0 1 1
+#--tape set 2 0 1 0
+#--tape set 3 0 1 1
+
+# Move to the far right
+AR {&:0;:2} AR {&:0;:2} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+A_0 0 A00 0 2 +
+A_0 1 A01 1 2 +
+A_1 0 A01 0 2 +
+A_1 1 A10 1 2 +
+
+# Add second value
+A00 0 A00 0 2 - 1 +
+A00 1 A01 1 2 - 1 +
+A01 0 A01 0 2 - 1 +
+A01 1 A10 1 2 - 1 +
+A10 0 A10 0 2 - 1 +
+A10 1 A11 1 2 - 1 +
+
+# Write sum
+A{&:c;:2}{&:s;:2} _ A_{&:c;:2} {&:s;:2} 0 - 1 -
+
+# Move to write carry bit
+A_{&:c;:2} _ A{&:c;:2} _ 1 +
+
+# Write carry bit
+A{&:c;:2} _ A {&:c;:2}
+
+################################################################################
+# 2D Base-N Addition
+
+# Move to the far right
+AR {&:0;:3} AR {&:0;:3} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+A_{&:a;0,1} {&:b;:3} \
+A{&:b;%:0,0,0,1,1,1;{&:a;0:2}:{&:a;3:5}}{&:b;%:0,1,2;{&:a;0:2}:{&:a;3:5}} \
+{&:b;:3} 1 +
+
+# Add second value
+A{&:a;0,0,0,1}{&:a;0:3,0} {&:b;:3} \
+A{&:b;%:0,0,0,1,1,1;{&:a;0:4}:{&:a;3:7}}{&:b;%:0,1,2;{&:a;0:4}:{&:a;3:7}} \
+{&:b;:3} 1 +
+
+# Add first value to carry 
+# A_{&:a;0,1} {&:b;:[N]} \
+# A{&:b;%:0,0,0,1,1,1;{&:a;0:2}:{&:a;[N]:[N+2]}}{&:b;%:0,1,2;{&:a;0:2}:{&:a;[N]:[N+2]}} \
+# {&:b;0:[N]} 1 +
+
+# Add second value
+# A{&:a;0,0,0,1}{&:a;:[N],0} {&:b;:[N]} \
+# A{&:b;%:0,0,0,1,1,1;{&:a;0:[N+1]}:{&:a;[N]:[2N+1]}}{&:b;%:0,1,2;{&:a;0:[N+1]}:{&:a;[N]:[2N+1]}} \
+# {&:b;0:[N]} 1 +
+
+# Write sum, move up and left
+A{&:c;:3}{&:s;:3} _ A_{&:c;:3}U {&:s;:3} 0 - 1 -
+
+# Move up again
+A_{&:c;:3}U {&:x;:3} A_{&:c;:3} {&:x;:3} 1 -
+
+# Move to write carry bit
+A_{&:c;:3}U _ A{&:c;:3} _ 1 +
+
+# Write carry bit
+A{&:c;:3} _ A {&:c;:3}
+
+################################################################################
+# Decimal Addition
+
+#--timeout 0
+#--grid true
+#--view x y
+#--start AR
+#--tape print 987\n021
+
+# Move to the far right
+AR {&:0;:10} AR {&:0;:10} 0 +
+AR _ A_0 _ 0 -
+
+# Add first value to carry 
+A_{&:a;0,1} {&:b;:10} \
+A{&:b;%:0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1;{&:a;0:2}:{&:a;10:12}}{&:b;%:0,1,2,3,4,5,6,7,8,9;{&:a;0:2}:{&:a;10:12}} \
+{&:b;0:10} 1 +
+
+# Add second value
+A{&:a;0,0,0,0,0,0,0,0,0,0,1}{&:a;:10,0} {&:b;:10} \
+A{&:b;%:0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1;{&:a;0:11}:{&:a;10:21}}{&:b;%:0,1,2,3,4,5,6,7,8,9;{&:a;0:11}:{&:a;10:21}} \
+{&:b;0:10} 1 +
+
+# Write sum, move up and left
+A{&:c;:10}{&:s;:10} _ A_{&:c;:10}U {&:s;:10} 0 - 1 -
+
+# Move up again
+A_{&:c;:10}U {&:x;:10} A_{&:c;:10} {&:x;:10} 1 -
+
+# Move to write carry bit
+A_{&:c;:10}U _ A{&:c;:10} _ 1 +
+
+# Write carry bit
+A{&:c;:10} _ A {&:c;:10}
+
+################################################################################
+# Linedex Logo (Flip Portals)
+
+#--timeout 49
+#--grid true
+#--view x y
+#--start R
+#--tape set 1 0 v<
+#--tape set 1 1 v^
+#--tape set 1 2 >^
+
+R {&:0;L,X,I,D,E,N} R {&:0;X,I,D,E,N,L} 0 +
+R _ L L 
+L {&:0;L,X,I,D,E,N} L {&:0;X,N,E,L,I,D} 0 -
+L _ R N 
+
+# Mover
+# A symbol made of two characters from {<, >, ^, v}
+# Causes the head to move in the direction of the first symbol 
+# This is done regardless of current state
+# The order of the two characters is then reversed
+{&:s;R,L} {&:0;<,>,^,v}{&:1;<,>,^,v} \
+{&:s;R,L} {&:1;<,>,^,v}{&:0;<,>,^,v} \
+{&:0;0,0,1,1} {&:0;-,+,-,+}
+
+################################################################################
+# Linedex Logo (3D Flip Portals)
+
+#--timeout 49
+#--grid true
+#--view x y 0
+#--start R
+# --tape set 1 0 v<
+# --tape set 1 1 v^
+# --tape set 1 2 >^
+
+#           0 0 0
+#--tape set 1 0 0 2+0-
+#--tape set 1 0 1 1+2-
+#--tape set 1 1 1 1+1-
+#--tape set 1 2 1 2-1-
+#--tape set 1 2 0 0+2+
+#           2 2 0
+
+# --tape set -1 -2 v<
+# --tape set -1 -1 v^
+# --tape set -1 0 >^
+
+R {&:0;L,X,I,D,E,N} R {&:0;X,I,D,E,N,L} 0 + 2 =
+R _ L L 
+L {&:0;L,X,I,D,E,N} L {&:0;X,N,E,L,I,D} 0 -
+L _ R N 
+
+# Mover
+# A symbol made of two characters from {<, >, ^, v}
+# Causes the head to move in the direction of the first symbol 
+# This is done regardless of current state
+# The order of the two characters is then reversed
+# {&:s;R,L} {&:0;<,>,^,v}{&:1;<,>,^,v} \
+# {&:s;R,L} {&:1;<,>,^,v}{&:0;<,>,^,v} \
+# {&:0;0,0,1,1} {&:0;-,+,-,+}
+
+{&:s;R,L} {&:d0;:3}{&:s0;-,+}{&:d1;:3}{&:s1;-,+} \
+{&:s;R,L} {&:d1;:3}{&:s1;-,+}{&:d0;:3}{&:s0;-,+} \
+{&:d0;:3} {&:s0;-,+}
+
+################################################################################
+# Linedex Logo (Basic Portals)
+
+#--timeout 55
+#--view x y z
+#--start R
+#--color 2+ #27A7D8
+#--color 2- #FF9A00
+
+#           0 0 0
+#--tape set 1 0 0 2+
+#--tape set 1 0 1 1+
+#--tape set 1 1 1 1+
+#--tape set 1 2 1 2-
+#           1 2 0
+
+#           1 2  0
+#--tape set 0 2  0 2-
+#--tape set 0 2 -1 1-
+#--tape set 0 1 -1 1-
+#--tape set 0 0 -1 2+
+#           0 0  0
+
+# Lindex Logo
+# This is the example code that draws the logo
+R {&:0;L,X,I,D,E,N} R {&:0;X,I,D,E,N,L} 0 +
+R _ L L 
+L {&:0;L,X,I,D,E,N} L {&:0;X,N,E,L,I,D} 0 -
+L _ R N 
+
+# Mover
+# When any state enters a cell with a direction 
+# (Number followed by a plus or minus)
+# The head moves in that direction
+# Neither the state nor symbol is changed
+{&:s;R,L} {&:0;:3}{&:1;-,+} \
+{&:s;R,L} {&:0;:3}{&:1;-,+} \
+{&:0;:3} {&:1;-,+}
+
+################################################################################
+# Linedex Logo (Continuous Portal)
+
+#--timeout 55
+#--view x y z
+#--start R
+#--color 2+ #27A7D8
+#--color 2- #FF9A00
+
+#            0 0 0
+#--tape set  1 0 0 2+
+#--tape set  1 0 1 0-
+#--tape set  0 0 1 0-
+#--tape set -1 0 1 0-
+#--tape set -2 0 1 0-
+#--tape set -3 0 1 0-
+#--tape set -4 0 1 0-
+#--tape set -5 0 1 0-
+#--tape set -6 0 1 2-
+#           -6 0 0
+
+#           -6 0  0
+#--tape set -7 0  0 2-
+#--tape set -7 0 -1 0+
+#--tape set -6 0 -1 0+
+#--tape set -5 0 -1 0+
+#--tape set -4 0 -1 0+
+#--tape set -3 0 -1 0+
+#--tape set -2 0 -1 0+
+#--tape set -1 0 -1 0+
+#--tape set  0 0 -1 2+
+#            0 0  0
+
+# Lindex Logo
+# This is the example code that draws the logo
+R {&:0;L,X,I,D,E,N} R {&:0;X,I,D,E,N,L} 0 +
+R _ L L 
+L {&:0;L,X,I,D,E,N} L {&:0;X,N,E,L,I,D} 0 -
+L _ R N 
+
+# Mover
+# When any state enters a cell with a direction 
+# (Number followed by a plus or minus)
+# The head moves in that direction
+# Neither the state nor symbol is changed
+{&:s;R,L} {&:0;:3}{&:1;-,+} \
+{&:s;R,L} {&:0;:3}{&:1;-,+} \
+{&:0;:3} {&:1;-,+}
