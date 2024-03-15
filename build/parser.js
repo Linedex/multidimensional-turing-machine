@@ -24,23 +24,79 @@ Does not impact how the TM++ code functions.
  */
 function parseText(text) {
 
+
+
+
+
+  // Reset all variables to defaults
+  // TuringMachine++ varibles
   deltas = {};
   tape = {};
+  head = null;
   state = 'start';
 
+  // The tape dimension indicies to render as x,y,z
   xIndex = 0;
   yIndex = 1;
   zIndex = NaN;
 
-  timeout = 100;
-  colors = {};
-  viewCoords = [];
-  breakpoints = [];
-
   nDims = 2;
+  curIteration = 0;
+  tapeBoundsMin = null;
+  tapeBoundsMax = null;
+  viewCoords = [];
+  colors = {};
+  timeout = 10000;
+  breakpoints = [];
+  keyMap = {};
+
+
+  // NEW
+
+
+
+
 
   // Remove newlines preceded by a backslash
   text = text.replace(/\\\n/g,"");
+
+  configLines = []
+  deltaLines = []
+
+  lines = text.split('\n');
+
+  // Extract sparce array keys
+  keys = Object.keys(lines);
+
+  for (let i of keys) {
+    let line = lines[i];
+
+    if (line.startsWith("#--")) {
+      delete lines[i];
+      delete keys[keys.indexOf(i)];
+      // parseConfig(line);
+    }
+
+    // Test if the line is empty or only a comment
+    else if (/^[\s]*(?:#.*)?$/.test(line)) {
+      delete lines[i];
+      delete keys[keys.indexOf(i)];
+    }
+
+    else if (/{/.test(line)) {
+      lines 
+      // unshift
+    }
+    
+  }
+
+
+
+
+  // OLD
+
+
+
 
   // Iterate over all configs
   for (match of text.matchAll(/^#--(?<line>.*)/gm)) {
@@ -48,10 +104,20 @@ function parseText(text) {
     parseConfig(line);
   }
 
+  // Extract all lines using regex
+  // lines = text.matchAll(/^[^\S\n]*(?<line>[^#\s\n]+[^#\n]*[^#\s\n]+)/gm);
+  // Convert to an array
+  // lines = [...lines].map(x=>x[0]);
+
   // Iterate over all non comment lines
   for (match of text.matchAll(/^[^\S\n]*(?<line>[^#\s\n]+[^#\n]*[^#\s\n]+)/gm)) {
     line = match.groups['line'];
-    parseGenerator(line);
+    parseLine(line);
+  }
+
+  // Set default zIndex to 3 if possible
+  if (zIndex == NaN && nDims > 2) {
+    zIndex = 2;
   }
 
   // Set the head position to all zeros
@@ -74,20 +140,22 @@ function parseText(text) {
 
 
 
+
+
 /**
  * Comments at the top of the file used to load IDE settings.
  * Does not impact how the TM++ code functions.
  * 
- * #view <width-dim-num> [height-dim-index] [layer-dim-index] [[<fixed-dim-index>=<value; default=0>] ...]
+ * #--view <width-dim-num> [height-dim-index] [layer-dim-index] [[<fixed-dim-index>=<value; default=0>] ...]
  *    Used to view 1D, 2D, 3D views
  * 
- * #grid (true|false)
+ * #--grid (true|false)
  *    Show or hide the gridlines
  * 
- * #color <symbol> <html-color>
+ * #--color <symbol> <html-color>
  *    Set the color of a symbol
  * 
- * #break [state=<state>] [symbol=<symbol>]
+ * #--break [state=<state>] [symbol=<symbol>]
  *    Creates a breakpoint whenever the provided values matches the current values during runtime.
  * 
  * @param {string} text The full input text
@@ -95,16 +163,18 @@ function parseText(text) {
 function parseConfig(line) {
 
   // Strings before and after first section of spaces
-  var keyword, args
+  let keyword, args
 
   [keyword, args] = line.trim().split(/(?<=^\S*)\s+/);
 
   switch (keyword) {
 
+    // Set the start state
     case "start":
       state = args;
       break;
 
+    // Set the color of symbol
     case "color":
       args = args.split(/\s+/);
       if (args[0] == "auto") {
@@ -117,14 +187,22 @@ function parseConfig(line) {
       }
       break;
 
+    // Set showGrid
     case "grid":
       showGrid = args == "true";
       break;
 
+    // Set timeout
     case "timeout":
       timeout = parseInt(args);
       break;
 
+    case "key":
+      args = args.split(/\s+/);
+      keyMap[args[0]] = args[1];
+      break;
+
+    // Add breakpoint
     case "break":
       args = args.split(/\s+/);
       breakpoints.push(args[0] + "," + args[1])
@@ -144,63 +222,61 @@ function parseConfig(line) {
       }
       break;
 
+    // Modify tape
     case "tape":
-
+      // First arg describes type of modification
+      let subkeyword
       // Parse subkeyword and additional args
       [subkeyword, args] = args.trim().split(/(?<=^\S*)\s+/);
       args = args.trim().split(/\s+/);
-
-      let newSymbol = args.slice(args.length - 1);
+      // The 
+      let newSymbol = args.pop();
 
       switch (subkeyword) {
 
+        case "set":
+          cell = args.map(Number);
+          tape[cell] = newSymbol;
+          break;
+
+        case "print":
+          defaultCell = args.map(Number);
+          let lines = newSymbol.split("\\n");
+          // Update tape
+          for (let y = 0; y < lines.length; y++) {
+            for (let x = 0; x < lines[y].length; x++) {
+              cell = [...defaultCell]
+              cell[0] += x;
+              cell[1] += y;
+              tape[cell] = lines[y][x];
+            }
+          }
+          break;
+
         case "fill":
-
-          nDims = (args.length - 1) / 2;
-
+          nDims = args.length / 2;
           start = args.slice(0, nDims).map(Number); // Start values
-          stop = args.slice(nDims, 2 * nDims).map(Number); // Stop values
+          end = args.slice(nDims).map(Number); // Stop values
           cell = [] // Current cell to fill 
-
           // Recursive N dimensional fill
           function fill(d) {
             if (d >= nDims) {
               tape[cell] = newSymbol;
               return;
             }
-            for (let i = start[d]; i < stop[d]; i++) {
+            for (let i = start[d]; i < end[d]; i++) {
               cell[d] = i;
               fill(d + 1);
             }
           }
-
           fill(0);
           break;
 
-        // TODO Add non 2D support
-        case "print":
-          let lines = args[0].split("\\n");
-          // Update bounds
-          // tapeBoundsMax[1] = lines.length; //y
-          // tapeBoundsMax[0] = Math.max(lines.map((line)=>{return line.length})); //x
-          // Update tape
-          for (let y = 0; y < lines.length; y++) {
-            for (let x = 0; x < lines[y].length; x++) {
-              cell = [x,y];
-              tape[cell] = lines[y][x];
-            }
-          }
-          break;
-
-        case "set":
-          cell = args.slice(0, args.length - 1).map(Number);
-          tape[cell] = newSymbol;
-          break;
-
       }
-
   }
 }
+
+
 
 
 
@@ -266,126 +342,277 @@ function parseConfig(line) {
  *    
  * @param {string} line A single line containing a generator 
  */
-function parseGenerator(line) {
+function parseLine(line) {
+  
+  console.log(line);
 
-  // Extract first non embedded brackets
-  // generator = line.match(/\{[^\{\}]*?\}/)
-
-  // The first non embedded generator
-  var generator = line.match(/{(?:&:(?<track>[^{};]*);)?(?:%:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}/);
-
-  // No generator is found, skip
-  if (generator == null) {
-    parseDelta(line)
-    return
+  // Skip if line does not contain a generator
+  if (!line.includes('{')) {
+    parseDelta(line);
+    return;
   }
 
-  // The track of the first generator
-  const track = generator.groups.track;
+  //
+  // Parse all generators
+  //
 
-  // regular expression to extarct all generators on the same track
-  const reg = RegExp('{\\&:' + track + ';(?:%:(?<symbols>[^{};]*);)?(?<gen>[^{}]+)}')
+  // Stack of indicies where '{' was encountered
+  let indicies = [];
+  
+  // Set of tracks belonging to a generator not containing another generator
+  let possibleTracks = new Set();
 
-  // The line split across all generators on the same track
-  var segs = [line]
+  // Set of tracks belonging to a generator containing another generator
+  let invalidTracks = new Set();
 
-  var genEntries = []
-  var genSymbols = []
+  // Contains a stack of generators for each possible track
+  // Only one stack will be used once a track is decided
+  let trackGens = {};
 
-  // Extract all generators with the same track
-  do {
-    // Extract last segment
-    const seg = segs.pop()
+  // Parse every character
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
 
-    split = seg.split(generator[0])
+    // A generator has been entered
+    if (char == '{') {
+      indicies.push(i)      
+      
+    // A generator has been exited
+    } else if (char == '}') {
 
-    // Split the segment along the generator
-    segs.push(...[split.shift(), split.join(generator[0])])
+      const start = indicies.pop();  
+      const end = i + 1;
+      const generatorText = line.slice(start,end);
+      const generator = parseGenerator(generatorText);
+      const track = generator.track;
 
-    genEntries.push(generator.groups.gen.split(","))
+      if (generator.containsGenerator) {
 
-    if (generator.groups.symbols != undefined) {
-      genSymbols.push(generator.groups.symbols.split(","))
-    } else {
-      genSymbols.push(null)
-    }
-
-    // Find next generator
-    generator = segs[segs.length - 1].match(reg);
-
-  } while (generator != null)
-
-  // Expand all generator builders into generator lists
-  var newGenEntries = []
-
-  for (let i = 0; i < genEntries.length; i++) {
-    newGenEntries[i] = []
-    for (value of genEntries[i]) {
-
-      // Value is a range
-      if (value.includes(":")) {
-
-        // Divide into subvalues for start, end, step
-        // All subvalues are integers
-        subvalues = value.split(":")
-
-        start = parseInt(subvalues[0])
-        end = parseInt(subvalues[1])
-
-        if (isNaN(start)) {
-          start = 0;
-        }
-
-        // Check of optional third element is included
-        if (subvalues.length == 3) {
-          step = parseInt(subvalues[2])
-        } else {
-          step = 1;
-        }
-
-        // Reverse if iteration is negative
-        // TODO optimize
-        if (step > 0) {
-          for (let k = start; k < end; k += step) {
-            newGenEntries[i].push(k)
-          }
-        } else {
-          for (let k = start; k > end; k += step) {
-            newGenEntries[i].push(k)
-          }
-        }
-
+        // Store generator track as an invalid track
+        invalidTracks.add(generator.track);
+      
       } else {
-        // Value is just a normal value
-        newGenEntries[i].push(value)
+
+        // Store generator track as a possibly valid track
+        possibleTracks.add(generator.track);
+
+        // Add start and end indicies to generator
+        // This cannot be calculated by the generator parser
+        generator.start = start;
+        generator.end = end;
+
+        // Push generator object to it's track's stack 
+        trackGens[track] ??= [];
+        trackGens[track].push(generator);
       }
     }
   }
 
-  genEntries = newGenEntries
+  //
+  // Determine track to use
+  //
 
-  // Construct the new line with the values inserted
-  for (let i = 0; i < genEntries[0].length; i++) {
-    newLine = segs[0]
-    for (let j = 0; j < genEntries.length; j++) {
+  let track;
+  
+  // Find the first track that is valid and not invalid
+  for (track of [...possibleTracks]) {
+    if (!invalidTracks.has(track)) {
+      break;
+    }
+  }  
 
-      // Replace generator with its symbol or value
-      if (genSymbols[j] != null) {
-        n = genSymbols[j].length
-        index = ((genEntries[j][i] % n) + n) % n
-        newLine += genSymbols[j][index]
+  //
+  // Fragment line
+  //
+
+  // The line split along the generators with the current track
+  const segs = [line];
+
+  // The generators for the current track in reversed order
+  let generators = trackGens[track];
+
+  // Deque generators and 
+  for (let generator of generators.toReversed()) {
+    const start = generator.start;
+    const end = generator.end;
+    const seg = segs.shift();
+    const seg0 = seg.slice(0,start);
+    const seg1 = seg.slice(end);
+    segs.unshift(seg0,seg1);
+  }
+
+  //
+  // Rebuild into multiple lines
+  //
+
+  // Number of new lines that will be generated
+  const reps = generators[0].items.length;
+
+  // Create a new line for each item in the generator
+  for (let i = 0; i < reps; i++) {
+
+    // The line with generators of the current track replaced
+    let newLine = segs[0];
+    
+    // Repeat for each generator and segment
+    for (let j = 0; j < generators.length; j++) {
+
+      const generator = generators[j];
+
+      // Replace generator with its symbol or value and push onto current line
+      if ('symbols' in generator) {
+        // Modulus without negatives
+        const len = generator.symbols.length
+        const index = ((generator.items[i] % len) + len) % len;
+        newLine += generator.symbols[index];
       } else {
-        newLine += genEntries[j][i]
+        newLine += generator.items[i];
       }
 
-      newLine += segs[j + 1]
+      // Push next segment onto the current line
+      newLine += segs[j + 1];
     }
 
+    
+    
     // Parse the resulting line incase it also contains a generator
-    parseGenerator(newLine);
+    parseLine(newLine);
 
   }
 }
+
+
+
+
+
+/**
+ * 
+ * @param {String} text The generator as as a string.
+ * @returns An object representing a generator.
+ */
+function parseGenerator(text) {
+
+  // Remove curly braces
+  text = text.slice(1,-1);
+
+  // Remove spaces
+  text = text.replace(/\s+/,'');
+
+  // The generator object to return
+  let generator = {};
+
+  // Calculate if the generator conatians another generator
+  generator.containsGenerator = text.includes('{');
+
+  // The generator is divided into parts by the semicolon
+  let parts = text.split(';');
+
+  // Parse into JSON
+  for (let part of parts) {
+    // Each part of a generator is divided into a tag and a body
+    const match = part.match(/(?:(?<tag>[^,:\s\d]+):)?(?<body>.*)/).groups;
+      
+    // Default tag for entries
+    match.tag ??= "items";
+
+    let tag = match.tag;
+    let body = match.body;
+
+    // Tag name abbreviations
+    switch (tag) {
+      case '@': tag = "items"; break;
+      case '&': tag = "track"; break;
+      case '%': tag = "symbols"; break;
+      case '?': tag = "store"; break;
+      case '!': tag = "recall"; break;
+    }
+
+    // Only parse the track for generators containing sub generators
+    if (generator.containsGenerator && tag != 'track') continue;
+
+    // Assign parsed body to tag
+    switch (tag) {
+      case "symbols": case "items":
+        generator[tag] = parseMixedArray(match.body); 
+        break;
+      default:
+        generator[tag] = match.body; 
+    }
+  }
+
+  if (generator.containsGenerator) {
+    // Default track value is the length of it's entries if there is no sub generators
+    generator.track ??= '_';
+  } else {
+    // Default track value is the length of it's entries
+    generator.track ??= '_' + generator.items.length;
+  }
+  
+  return generator;
+}
+
+
+/**
+ * @param {String} text A string for an array that may contain ranges as elements
+ * @returns An array
+ */
+function parseMixedArray(text) {
+  let returnArray = [];
+  let items = text.split(",");
+
+  for (let item of items) {
+    if (item.includes(":")) {
+      returnArray = returnArray.concat(parseSlice(item));
+    } else {
+      returnArray.push(item);
+    }
+  }
+
+  return returnArray;
+}
+
+/**
+ * 
+ * @param {String} text A string representation of a slice.
+ * @returns an Array of integers generated from the slice.
+ */
+function parseSlice(text) {
+  let returnArray = [];
+
+  // Divide into subvalues for start, end, step
+  // All subvalues are integers
+  let values = text.split(":");
+  let start = parseInt(values[0]);
+  let end = parseInt(values[1]);
+
+  if (isNaN(start)) {
+    start = 0;
+  }
+
+  // Check of optional third element is included
+  if (values.length == 3) {
+    step = parseInt(values[2]);
+  } else {
+    step = 1;
+  }
+
+  // Reverse if iteration is negative
+  // TODO optimize
+  if (step > 0) {
+    for (let k = start; k < end; k += step) {
+      returnArray.push(k);
+    }
+  } else {
+    for (let k = start; k > end; k += step) {
+      returnArray.push(k);
+    }
+  }
+
+  return returnArray;
+}
+
+
+
 
 
 /**
@@ -397,14 +624,14 @@ function parseGenerator(line) {
  * <current-state> <current-symbol> <new-state> <new-symbol> [[<dim-index> (-|+)] ...]
  *    ND Turing Machine notation.
  * 
- * @param {string} text 
+ * @param {string} line A line describing a delta transition
  */
 function parseDelta(line) {
   const args = line.split(/\s+/);
 
   // Calculate the number of dimensions as the largest dimension index value plus one
   for (let i = 4; i < args.length; i += 2) {
-    dim = parseInt(args[i]);
+    const dim = parseInt(args[i]);
     if (dim + 1 > nDims) {
       nDims = dim + 1;
     }

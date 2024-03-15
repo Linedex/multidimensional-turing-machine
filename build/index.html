@@ -88,7 +88,9 @@
         <button onclick="runMachine();draw()">Run</button>
         <button onclick="parseMachine();draw()">Reset</button>
       </div>
+      
     </div>
+    <div id="counter">0</div>
     <!-- <div id="coords">0, 0</div> -->
     <!-- <div id="state">start</div> -->
     <!-- <div id="button-bar">    
@@ -125,11 +127,11 @@ L 1 D _ 1 -</textarea>
 
     <!-- Tape Display  -->
     <!-- <div id="canvas-container"> -->
-    <canvas id="canvas" width="1000" height="1000"></canvas>
+    <canvas id="canvas" tabindex="1" width="1000" height="1000"></canvas>
     <!-- </div> -->
 
     <div class="footer">
-      <div id="coords">0, 0</div>
+      <div id="coords">()</div>
       <div id="state">start</div>
     </div>
 

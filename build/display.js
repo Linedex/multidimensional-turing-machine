@@ -49,6 +49,16 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
   
+  function handleKeydown(event) {
+    const key = event.key;
+    if (key in keyMap) {
+      // Update state
+      state = keyMap[key];
+      // Start machine again
+      runMachine();
+    }
+  }
+
   function handleResize(event) {
     canvas.width = canvas.getBoundingClientRect().width;
     canvas.height = canvas.getBoundingClientRect().height;
@@ -76,6 +86,7 @@ document.addEventListener("DOMContentLoaded", function() {
   canvas.addEventListener('auxclick', handleAuxclick);
   canvas.addEventListener("wheel", handleWheel);
   canvas.addEventListener("mousemove", handleMousemove);
+  canvas.addEventListener("keydown", handleKeydown, false);
 
   parseMachine(); // Initial parse
   runMachine();
